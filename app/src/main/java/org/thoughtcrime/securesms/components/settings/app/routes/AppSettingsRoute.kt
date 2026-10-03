@@ -123,6 +123,11 @@ sealed interface AppSettingsRoute : Parcelable {
   }
 
   @Parcelize
+  sealed interface AccessibilityRoute : AppSettingsRoute {
+    data object AccessibilityMode : AccessibilityRoute
+  }
+
+  @Parcelize
   sealed interface InternalRoute : AppSettingsRoute {
     data object Internal : InternalRoute
     data object DonorErrorConfiguration : InternalRoute

@@ -38,6 +38,7 @@ import org.thoughtcrime.securesms.components.webrtc.CallParticipantsState
 import org.thoughtcrime.securesms.components.webrtc.ToggleButtonOutputState
 import org.thoughtcrime.securesms.components.webrtc.WebRtcAudioOutput
 import org.thoughtcrime.securesms.components.webrtc.WebRtcControls
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.util.RemoteConfig
 
 /**
@@ -468,13 +469,16 @@ data class CallControlsState(
         isEarpieceAvailable = webRtcControls.isEarpieceAvailableForAudioToggle,
         isBluetoothHeadsetAvailable = webRtcControls.isBluetoothHeadsetAvailableForAudioToggle,
         isWiredHeadsetAvailable = webRtcControls.isWiredHeadsetAvailableForAudioToggle,
-        skipHiddenState = !(webRtcControls.isFadeOutEnabled || webRtcControls == WebRtcControls.PIP || webRtcControls.displayErrorControls()),
+        // Accessibility Mode can pin the controls open, but never in picture-in-picture: there the
+        // window is too small to show them and hiding them is the whole point.
+        skipHiddenState = (SignalStore.accessibility.forcesControlsVisible && webRtcControls != WebRtcControls.PIP) ||
+          !(webRtcControls.isFadeOutEnabled || webRtcControls == WebRtcControls.PIP || webRtcControls.displayErrorControls()),
         displayAudioOutputToggle = webRtcControls.displayAudioToggle(),
         audioOutput = webRtcControls.audioOutput,
         isAudioOutputChangePending = isAudioDeviceChangePending,
-        displayVideoToggle = webRtcControls.displayVideoToggle(),
+        displayVideoToggle = webRtcControls.displayVideoToggle() && SignalStore.accessibility.mayToggleCamera,
         isVideoEnabled = callParticipantsState.localParticipant.isVideoEnabled,
-        displayMicToggle = webRtcControls.displayMuteAudio(),
+        displayMicToggle = webRtcControls.displayMuteAudio() && SignalStore.accessibility.mayToggleMic,
         isMicEnabled = callParticipantsState.localParticipant.isMicrophoneEnabled,
         displayGroupRingingToggle = webRtcControls.displayRingToggle(),
         isGroupCall = webRtcControls.isGroupCall,

@@ -109,6 +109,7 @@ class AppSettingsFragment : ComposeFragment(), Callbacks {
             is AppSettingsRoute.StoriesRoute.Privacy -> findNavController().safeNavigate(AppSettingsFragmentDirections.actionAppSettingsFragmentToStoryPrivacySettings(route.titleId))
             is AppSettingsRoute.NotificationsRoute.Notifications -> findNavController().safeNavigate(R.id.action_appSettingsFragment_to_notificationsSettingsFragment)
             is AppSettingsRoute.PrivacyRoute.Privacy -> findNavController().safeNavigate(R.id.action_appSettingsFragment_to_privacySettingsFragment)
+            is AppSettingsRoute.AccessibilityRoute.AccessibilityMode -> findNavController().safeNavigate(R.id.action_appSettingsFragment_to_accessibilityModeSettingsFragment)
             is AppSettingsRoute.BackupsRoute.Backups -> findNavController().safeNavigate(R.id.action_appSettingsFragment_to_backupsSettingsFragment)
             is AppSettingsRoute.DataAndStorageRoute.DataAndStorage -> findNavController().safeNavigate(R.id.action_appSettingsFragment_to_dataAndStorageSettingsFragment)
             is AppSettingsRoute.AppUpdates -> findNavController().safeNavigate(R.id.action_appSettingsFragment_to_appUpdatesSettingsFragment)
@@ -410,6 +411,17 @@ private fun AppSettingsContent(
             icon = SignalIcons.Lock.painter,
             onClick = {
               callbacks.navigate(AppSettingsRoute.PrivacyRoute.Privacy)
+            },
+            enabled = isRegisteredAndUpToDate
+          )
+        }
+
+        item {
+          Rows.TextRow(
+            text = "Accessibility Mode",
+            icon = painterResource(R.drawable.symbol_video_24),
+            onClick = {
+              callbacks.navigate(AppSettingsRoute.AccessibilityRoute.AccessibilityMode)
             },
             enabled = isRegisteredAndUpToDate
           )

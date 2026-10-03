@@ -61,6 +61,7 @@ import org.thoughtcrime.securesms.components.settings.app.subscription.BadgeImag
 import org.thoughtcrime.securesms.components.webrtc.TextureViewRenderer
 import org.thoughtcrime.securesms.contacts.avatars.ProfileContactPhoto
 import org.thoughtcrime.securesms.events.CallParticipant
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.recipients.rememberRecipientField
 import org.thoughtcrime.securesms.ringrtc.CameraState
@@ -202,7 +203,7 @@ fun SelfPipContent(
         )
       }
 
-      if (isMoreThanOneCameraAvailable) {
+      if (isMoreThanOneCameraAvailable && SignalStore.accessibility.maySwitchCamera) {
         SwitchCameraButton(
           selfPipMode = selfPipMode,
           onClick = onSwitchCameraClick,

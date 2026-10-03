@@ -47,7 +47,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -99,6 +101,9 @@ import org.signal.core.util.getParcelableCompat
 import org.signal.core.util.getSerializableCompat
 import org.signal.core.util.logging.Log
 import org.signal.donations.StripeApi
+import org.thoughtcrime.securesms.accessibility.AccessibilityHomeScreen
+import org.thoughtcrime.securesms.accessibility.AccessibilityHomeViewModel
+import org.thoughtcrime.securesms.accessibility.startAccessibilityVideoCall
 import org.thoughtcrime.securesms.backup.v2.ArchiveRestoreProgress
 import org.thoughtcrime.securesms.backup.v2.ArchiveRestoreProgressState
 import org.thoughtcrime.securesms.backup.v2.ui.CouldNotCompleteBackupRestoreSheet
@@ -253,6 +258,27 @@ class MainActivity :
   private val toolbarCallback = ToolbarCallback()
 
   private val motionEventRelay: MotionEventRelay by viewModels()
+  private val accessibilityHomeViewModel: AccessibilityHomeViewModel by viewModels()
+
+  /**
+   * Held as Compose state on the Activity rather than remembered inside setContent: the mode is
+   * switched on from a different Activity, so a `remember` would hold the value from app start and
+   * the switch would only take effect after a restart.
+   */
+  private var accessibilityModeEnabled by mutableStateOf(SignalStore.accessibility.isEnabled)
+
+  /**
+   * Every popup this Activity shows without being asked is gated on this -- relink reminder,
+   * transfer and restore sheets, battery saver and debug log prompts, notification profile toast.
+   * Read from the store on each call rather than from [accessibilityModeEnabled], so that flows
+   * collected outside of composition see the current value and not the one from the last onResume.
+   *
+   * The popups that come with the normal screen itself (app rating, PIN reminder and the other
+   * megaphones, the conversation list banners) are not gated here: [MainContainer] does not compose
+   * that screen at all while the mode is on, so they never run.
+   */
+  private val popupsSuppressed: Boolean
+    get() = SignalStore.accessibility.suppressesPopups
 
   private var onFirstRender = false
   private var previousTopToastPopup: TopToastPopup? = null
@@ -333,7 +359,9 @@ class MainActivity :
             .filter { it.restoreStatus == ArchiveRestoreProgressState.RestoreStatus.LOCAL_RESTORE_DIRECTORY_UNAVAILABLE }
             .collect {
               ArchiveRestoreProgress.clearLocalRestoreDirectoryError()
-              CouldNotCompleteBackupRestoreSheet().show(supportFragmentManager, BottomSheetUtil.STANDARD_BOTTOM_SHEET_FRAGMENT_TAG)
+              if (!popupsSuppressed) {
+                CouldNotCompleteBackupRestoreSheet().show(supportFragmentManager, BottomSheetUtil.STANDARD_BOTTOM_SHEET_FRAGMENT_TAG)
+              }
               Log.i(TAG, "Local restore directory became unavailable.")
             }
         }
@@ -347,7 +375,9 @@ class MainActivity :
             .filter { it > 0L }
             .collect { requestedAt ->
               val notificationThreshold = requestedAt + 10.minutes.inWholeMilliseconds
-              if (System.currentTimeMillis() < notificationThreshold) {
+              if (popupsSuppressed) {
+                Log.i(TAG, "Verification code requested but accessibility mode is on, not showing sheet")
+              } else if (System.currentTimeMillis() < notificationThreshold) {
                 VerificationCodeRequestedBottomSheet.show(supportFragmentManager, requestedAt)
               } else {
                 Log.i(TAG, "Verification code requested but is older than 10 minutes, not showing sheet")
@@ -496,6 +526,39 @@ class MainActivity :
           )
         }
       }
+
+      // Drawn last and at the root of setContent, so it fills the whole window -- including the
+      // navigation rail and the detail pane of the tablet layout. Placed here rather than as an
+      // early branch at the top: an early `return` out of a composable lambda leaves Compose's
+      // group bookkeeping inconsistent, and the content then measures without ever being drawn.
+      // While this is shown, MainContainer above composes nothing, so the normal screen and its
+      // popups do not run underneath; see popupsSuppressed.
+      if (accessibilityModeEnabled) {
+        val accessibilityHomeState by accessibilityHomeViewModel.state.collectAsStateWithLifecycle()
+
+        // The pre draw listener below holds back every frame until onFirstRender() is called, and
+        // the only callers are the normal screen's fragments and navigation -- none of which run
+        // while this branch owns the window. Without this the window never draws and never takes
+        // focus, so taps are dropped and the app ANRs on the first input.
+        LaunchedEffect(Unit) {
+          onFirstRender()
+        }
+
+        SignalTheme {
+          AccessibilityHomeScreen(
+            state = accessibilityHomeState,
+            pinExitEnabled = SignalStore.accessibility.exitWithPin && SignalStore.svr.hasPin(),
+            exitCorner = SignalStore.accessibility.tapCorner,
+            exitTapCount = SignalStore.accessibility.tapCount,
+            exitTapWindowMillis = SignalStore.accessibility.tapWindowMillis,
+            onCallClick = { startAccessibilityVideoCall(this@MainActivity, it) },
+            onExit = {
+              SignalStore.accessibility.isEnabled = false
+              accessibilityModeEnabled = false
+            }
+          )
+        }
+      }
     }
 
     val content: View = findViewById(android.R.id.content)
@@ -639,6 +702,16 @@ class MainActivity :
 
   @Composable
   private fun MainContainer(content: @Composable BoxWithConstraintsScope.() -> Unit) {
+    // Accessibility mode replaces the normal screen instead of only covering it. Composing it
+    // underneath would keep the conversation list and the megaphone chrome alive, and their popups
+    // -- app rating, PIN reminder -- would then appear on top of the accessibility screen, which
+    // has no way to dismiss them. Bailing out before anything is emitted is safe; what is not safe
+    // is returning out of the setContent lambda after content has been emitted (see the hook at the
+    // end of setContent).
+    if (accessibilityModeEnabled) {
+      return
+    }
+
     val isSplitPane = LocalResources.current.rememberIsSplitPane()
 
     CompositionLocalProvider(LocalSnackbarStateConsumerRegistry provides mainNavigationViewModel.snackbarRegistry) {
@@ -714,32 +787,42 @@ class MainActivity :
 
     toolbarViewModel.refresh()
 
-    if (SignalStore.misc.shouldShowLinkedDevicesReminder) {
-      SignalStore.misc.shouldShowLinkedDevicesReminder = false
-      RelinkDevicesReminderBottomSheetFragment.show(supportFragmentManager)
+    // Picks up a switch made in app settings while this Activity was stopped.
+    accessibilityModeEnabled = SignalStore.accessibility.isEnabled
+
+    // The flags stay set while suppressed, so each of these is deferred to the next resume outside
+    // of accessibility mode rather than swallowed.
+    if (!popupsSuppressed) {
+      if (SignalStore.misc.shouldShowLinkedDevicesReminder) {
+        SignalStore.misc.shouldShowLinkedDevicesReminder = false
+        RelinkDevicesReminderBottomSheetFragment.show(supportFragmentManager)
+      }
+
+      if (SignalStore.registration.restoringOnNewDevice) {
+        SignalStore.registration.restoringOnNewDevice = false
+        RestoreCompleteBottomSheetDialog.show(supportFragmentManager)
+      } else if (SignalStore.misc.isOldDeviceTransferLocked) {
+        MaterialAlertDialogBuilder(this)
+          .setTitle(R.string.OldDeviceTransferLockedDialog__complete_registration_on_your_new_device)
+          .setMessage(R.string.OldDeviceTransferLockedDialog__your_signal_account_has_been_transferred_to_your_new_device)
+          .setPositiveButton(R.string.OldDeviceTransferLockedDialog__done) { _, _ -> OldDeviceExitActivity.exit(this) }
+          .setNegativeButton(R.string.OldDeviceTransferLockedDialog__cancel_and_activate_this_device) { _, _ ->
+            SignalStore.misc.isOldDeviceTransferLocked = false
+            DeviceTransferBlockingInterceptor.getInstance().unblockNetwork()
+          }
+          .setCancelable(false)
+          .show()
+      }
+
+      vitalsViewModel.checkSlowNotificationHeuristics()
     }
 
-    if (SignalStore.registration.restoringOnNewDevice) {
-      SignalStore.registration.restoringOnNewDevice = false
-      RestoreCompleteBottomSheetDialog.show(supportFragmentManager)
-    } else if (SignalStore.misc.isOldDeviceTransferLocked) {
-      MaterialAlertDialogBuilder(this)
-        .setTitle(R.string.OldDeviceTransferLockedDialog__complete_registration_on_your_new_device)
-        .setMessage(R.string.OldDeviceTransferLockedDialog__your_signal_account_has_been_transferred_to_your_new_device)
-        .setPositiveButton(R.string.OldDeviceTransferLockedDialog__done) { _, _ -> OldDeviceExitActivity.exit(this) }
-        .setNegativeButton(R.string.OldDeviceTransferLockedDialog__cancel_and_activate_this_device) { _, _ ->
-          SignalStore.misc.isOldDeviceTransferLocked = false
-          DeviceTransferBlockingInterceptor.getInstance().unblockNetwork()
-        }
-        .setCancelable(false)
-        .show()
-    }
-
-    vitalsViewModel.checkSlowNotificationHeuristics()
     mainNavigationViewModel.onEvent(MainNavigationEvents.RefreshNavigationBar)
 
-    CallQuality.consumeQualityRequest()?.let {
-      CallQualityBottomSheetFragment.create(it).show(supportFragmentManager, BottomSheetUtil.STANDARD_BOTTOM_SHEET_FRAGMENT_TAG)
+    if (!popupsSuppressed) {
+      CallQuality.consumeQualityRequest()?.let {
+        CallQualityBottomSheetFragment.create(it).show(supportFragmentManager, BottomSheetUtil.STANDARD_BOTTOM_SHEET_FRAGMENT_TAG)
+      }
     }
   }
 
@@ -855,6 +938,10 @@ class MainActivity :
 
   @SuppressLint("NewApi")
   private fun presentVitalsState(state: VitalsViewModel.State) {
+    if (popupsSuppressed) {
+      return
+    }
+
     when (state) {
       VitalsViewModel.State.NONE -> Unit
       VitalsViewModel.State.PROMPT_SPECIFIC_BATTERY_SAVER_DIALOG -> DeviceSpecificNotificationBottomSheet.show(supportFragmentManager)
@@ -942,7 +1029,7 @@ class MainActivity :
   private fun updateNotificationProfileStatus(notificationProfiles: List<NotificationProfile>) {
     val activeProfile = NotificationProfiles.getActiveProfile(profiles = notificationProfiles, shouldSync = true)
     if (activeProfile != null) {
-      if (activeProfile.id != SignalStore.notificationProfile.lastProfilePopup) {
+      if (!popupsSuppressed && activeProfile.id != SignalStore.notificationProfile.lastProfilePopup) {
         val view = findViewById<ViewGroup>(android.R.id.content)
 
         view.postDelayed({
