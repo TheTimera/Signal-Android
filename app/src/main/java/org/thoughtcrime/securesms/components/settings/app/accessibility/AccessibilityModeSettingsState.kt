@@ -14,6 +14,10 @@ data class AccessibilityModeSettingsState(
   val allowCameraToggle: Boolean = false,
   val allowMicToggle: Boolean = false,
   val allowCameraSwitch: Boolean = false,
+  val allowAnswerWithoutVideo: Boolean = true,
+  val allowScreenShare: Boolean = false,
+  val screenShareAvailable: Boolean = false,
+  val callStartVolumePercent: Int = 80,
   val hasPin: Boolean = false,
   val exitWithPin: Boolean = true,
   val showActivationDialog: Boolean = false
@@ -24,11 +28,4 @@ data class AccessibilityModeSettingsState(
    */
   val pinIsExitMethod: Boolean
     get() = exitWithPin && hasPin
-
-  /**
-   * Mirrors AccessibilityValues.isVideoCallOnly: the restriction holds as long as no exception has
-   * been granted. Kept derived here too so the screen cannot show a state the store disagrees with.
-   */
-  val isVideoCallOnly: Boolean
-    get() = !allowCameraToggle && !allowMicToggle && !allowCameraSwitch
 }

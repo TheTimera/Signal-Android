@@ -24,7 +24,8 @@ fun CallScreenTopBar(
   callStatus: String?,
   modifier: Modifier = Modifier,
   onNavigationClick: () -> Unit = {},
-  onCallInfoClick: () -> Unit = {}
+  onCallInfoClick: () -> Unit = {},
+  showNavigationIcon: Boolean = true
 ) {
   Box(
     modifier = modifier
@@ -40,7 +41,8 @@ fun CallScreenTopBar(
       callRecipient = callRecipient,
       callStatus = callStatus,
       onNavigationClick = onNavigationClick,
-      onCallInfoClick = onCallInfoClick
+      onCallInfoClick = onCallInfoClick,
+      showNavigationIcon = showNavigationIcon
     )
   }
 }

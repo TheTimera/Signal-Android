@@ -36,6 +36,7 @@ import org.signal.core.ui.compose.Previews
 import org.signal.core.ui.compose.theme.SignalTheme
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.events.CallParticipant
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.recipients.Recipient
 
 /**
@@ -64,12 +65,27 @@ fun CallScreenJoiningOverlay(
       .fillMaxSize()
       .then(modifier)
   ) {
-    CallScreenTopBar(
-      callRecipient = callRecipient,
-      callStatus = callStatus,
-      onNavigationClick = onNavigationClick,
-      onCallInfoClick = onCallInfoClick
-    )
+    // While it rings, the mode keeps the lobby's picture: avatar and name centred, status beneath.
+    // Signal's own bar puts both in the top left corner, which moves them the moment the user taps
+    // the call button -- see PreJoinHeader, the single source for this layout.
+    if (SignalStore.accessibility.simplifiesCallScreen) {
+      PreJoinHeader(
+        callRecipient = callRecipient,
+        callStatus = callStatus,
+        onNavigationClick = onNavigationClick,
+        onCallInfoClick = onCallInfoClick,
+        // The call is already placed by now. Going back would only put it in the background, and
+        // this mode has no second screen to come back from; "End Video Call" is the way out.
+        showNavigationIcon = false
+      )
+    } else {
+      CallScreenTopBar(
+        callRecipient = callRecipient,
+        callStatus = callStatus,
+        onNavigationClick = onNavigationClick,
+        onCallInfoClick = onCallInfoClick
+      )
+    }
 
     if (!isLocalVideoEnabled) {
       val isCompactWidth = !currentWindowAdaptiveInfo().windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
@@ -86,7 +102,9 @@ fun CallScreenJoiningOverlay(
       }
     }
 
-    val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable
+    // Accessibility Mode carries the camera switch in the control strip, where every other control
+    // sits. Signal's own one in the corner would be the second icon for the same thing.
+    val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable && !SignalStore.accessibility.simplifiesCallScreen
 
     BottomControlsWithOptionalBar(
       bottomSheetPadding = bottomSheetPadding,
@@ -139,7 +157,7 @@ private fun WaitingToBeLetInBar(
     horizontalArrangement = Arrangement.spacedBy(12.dp),
     verticalAlignment = Alignment.CenterVertically,
     modifier = modifier
-      .widthIn(max = CallScreenMetrics.SheetMaxWidth)
+      .widthIn(max = CallScreenMetrics.currentSheetMaxWidth)
       .fillMaxWidth()
       .background(
         color = SignalTheme.colors.colorSurface1,

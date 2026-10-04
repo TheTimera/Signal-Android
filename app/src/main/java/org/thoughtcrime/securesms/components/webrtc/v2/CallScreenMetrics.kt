@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 
 @Stable
 class CallScreenMetrics @RememberInComposition constructor(
@@ -35,6 +36,19 @@ class CallScreenMetrics @RememberInComposition constructor(
      * Maximum width of the bottom sheet and related UI bars on the call screen.
      */
     val SheetMaxWidth = 540.dp
+
+    /**
+     * Accessibility Mode fills the strip: audio output, camera, microphone, camera switch and
+     * screen share are five 48.dp buttons with 20.dp between them (340.dp), and the hang up button
+     * carries a label instead of being a sixth circle (about 210.dp). That is roughly 550.dp of
+     * content, which [SheetMaxWidth] cuts off. Widened rather than shrinking the buttons: they are
+     * the touch targets this mode exists for.
+     */
+    val SheetMaxWidthSimplified = 680.dp
+
+    /** The width that applies right now. */
+    val currentSheetMaxWidth: Dp
+      get() = if (SignalStore.accessibility.simplifiesCallScreen) SheetMaxWidthSimplified else SheetMaxWidth
   }
 
   /**

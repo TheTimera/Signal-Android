@@ -24,9 +24,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.signal.core.ui.compose.Dialogs
 import org.thoughtcrime.securesms.keyvalue.SignalStore
-import org.whispersystems.signalservice.api.kbs.PinHashUtil
-
-private const val MIN_PIN_LENGTH = 4
 
 /**
  * Asks for the Signal PIN before letting go of Accessibility Mode. Reached from the overflow button
@@ -43,8 +40,7 @@ fun AccessibilityExitDialog(
   val hasPin = remember { SignalStore.svr.hasPin() }
 
   var pin by remember { mutableStateOf("") }
-  var verified by remember { mutableStateOf(false) }
-  var lastAttemptFailed by remember { mutableStateOf(false) }
+  val pinCheck = rememberPinCheck(pin)
 
   Dialogs.BaseAlertDialog(
     onDismissRequest = onDismiss,
@@ -62,19 +58,14 @@ fun AccessibilityExitDialog(
 
           OutlinedTextField(
             value = pin,
-            onValueChange = {
-              pin = it
-              verified = false
-              lastAttemptFailed = false
-            },
+            onValueChange = { pin = it },
             label = { Text(text = "Signal PIN") },
             singleLine = true,
-            enabled = !verified,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = lastAttemptFailed,
+            isError = pinCheck.failed,
             supportingText = {
-              if (lastAttemptFailed) {
+              if (pinCheck.failed) {
                 Text(text = "That is not your Signal PIN.")
               }
             },
@@ -82,19 +73,6 @@ fun AccessibilityExitDialog(
               .fillMaxWidth()
               .padding(top = 12.dp)
           )
-
-          TextButton(
-            onClick = {
-              // On a button press, not per keystroke: this runs Argon2 and would stutter the field.
-              val hash = SignalStore.svr.localPinHash
-              val ok = hash != null && PinHashUtil.verifyLocalPinHash(hash, pin)
-              verified = ok
-              lastAttemptFailed = !ok
-            },
-            enabled = pin.length >= MIN_PIN_LENGTH && !verified
-          ) {
-            Text(text = if (verified) "PIN confirmed" else "Verify")
-          }
         } else {
           Text(
             text = "This device has no Signal PIN, so there is nothing to verify. Accessibility Mode will be switched off.",
@@ -111,7 +89,7 @@ fun AccessibilityExitDialog(
     confirmButton = {
       TextButton(
         onClick = onLeave,
-        enabled = verified || !hasPin
+        enabled = !hasPin || pinCheck.verified
       ) {
         Text(text = "Leave")
       }

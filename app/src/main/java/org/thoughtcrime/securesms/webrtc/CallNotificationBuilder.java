@@ -17,6 +17,7 @@ import org.thoughtcrime.securesms.MainActivity;
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.components.webrtc.v2.CallIntent;
 import org.thoughtcrime.securesms.keyvalue.SignalStore;
+import org.signal.core.util.AppForegroundObserver;
 import org.thoughtcrime.securesms.notifications.NotificationChannels;
 import org.thoughtcrime.securesms.recipients.Recipient;
 import org.thoughtcrime.securesms.service.webrtc.ActiveCallManager;
@@ -104,9 +105,23 @@ public class CallNotificationBuilder {
       return builder.build();
     } else if (type == TYPE_INCOMING_RINGING) {
       builder.setContentText(getIncomingCallContentText(context, recipient, isVideoCall));
-      builder.setPriority(NotificationCompat.PRIORITY_HIGH);
       builder.setCategory(NotificationCompat.CATEGORY_CALL);
-      builder.setFullScreenIntent(pendingIntent, true);
+
+      // While Accessibility Mode is on and the app is already in front, Signal has started the call
+      // screen itself (IncomingCallActionProcessor -> startWebRtcCallActivityIfPossible), so the
+      // heads-up would only repeat the question the screen is already asking. Dropped together with
+      // the full screen intent, which is the fallback for exactly the case this skips.
+      //
+      // Backgrounded or locked, nothing changes: high priority and the full screen intent stay, and
+      // they are what wakes the device.
+      boolean callScreenAlreadyShowing = SignalStore.accessibility().isEnabled() && AppForegroundObserver.isForegrounded();
+
+      if (callScreenAlreadyShowing) {
+        builder.setPriority(NotificationCompat.PRIORITY_LOW);
+      } else {
+        builder.setPriority(NotificationCompat.PRIORITY_HIGH);
+        builder.setFullScreenIntent(pendingIntent, true);
+      }
 
       Person person;
 
@@ -120,7 +135,11 @@ public class CallNotificationBuilder {
 
       builder.addPerson(person);
 
-      if (deviceVersionSupportsIncomingCallStyle()) {
+      // Accessibility Mode gets the plain notification instead of the CallStyle banner. The banner
+      // carries its own Decline and Video buttons and drops over Signal's own incoming call screen,
+      // so the user is asked the same question twice, in two different shapes. The full screen
+      // intent above is untouched: a call still has to wake a locked device.
+      if (deviceVersionSupportsIncomingCallStyle() && !SignalStore.accessibility().isEnabled()) {
         builder.setStyle(NotificationCompat.CallStyle.forIncomingCall(
             person,
             ActiveCallManager.denyCallIntent(context),

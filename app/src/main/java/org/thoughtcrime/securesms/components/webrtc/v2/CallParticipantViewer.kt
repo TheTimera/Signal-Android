@@ -203,7 +203,9 @@ fun SelfPipContent(
         )
       }
 
-      if (isMoreThanOneCameraAvailable && SignalStore.accessibility.maySwitchCamera) {
+      // Accessibility Mode carries the camera switch in the control strip; the one in the corner
+      // of the self preview would be a second icon for the same thing, on a smaller target.
+      if (isMoreThanOneCameraAvailable && !SignalStore.accessibility.simplifiesCallScreen) {
         SwitchCameraButton(
           selfPipMode = selfPipMode,
           onClick = onSwitchCameraClick,

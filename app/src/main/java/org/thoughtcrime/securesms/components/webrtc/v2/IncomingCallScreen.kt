@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +42,7 @@ import org.signal.glide.compose.GlideImage
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.avatar.AvatarImage
 import org.thoughtcrime.securesms.events.CallParticipant
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.ringrtc.CameraState
 
@@ -159,12 +161,63 @@ fun IncomingCallScreen(
 
       Spacer(modifier = Modifier.weight(1f))
 
-      if (isLandscape) {
+      if (SignalStore.accessibility.simplifiesCallScreen) {
+        SimplifiedButtons(isVideoCall, callScreenControlsListener)
+      } else if (isLandscape) {
         LandscapeButtons(isVideoCall, callScreenControlsListener)
       } else {
         PortraitButtons(isVideoCall, callScreenControlsListener)
       }
     }
+  }
+}
+
+/**
+ * The same three choices, as equally sized labelled pills. Signal draws them as circles of differing
+ * size with captions underneath -- the middle one is a 56.dp button inside a 78.dp box, which reads
+ * as "less important" rather than "different".
+ */
+@Composable
+private fun SimplifiedButtons(
+  isVideoCall: Boolean,
+  callScreenControlsListener: CallScreenControlsListener,
+  modifier: Modifier = Modifier
+) {
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = spacedBy(16.dp),
+    modifier = modifier
+      .padding(horizontal = 24.dp)
+      .padding(bottom = 24.dp)
+  ) {
+    CallActionButton(
+      text = stringResource(R.string.WebRtcCallScreen__decline),
+      imageVector = ImageVector.vectorResource(R.drawable.symbol_phone_down_fill_24),
+      containerColor = colorResource(id = R.color.webrtc_hangup_background),
+      onClick = callScreenControlsListener::onDenyCallPressed,
+      modifier = Modifier.weight(1f)
+    )
+
+    if (isVideoCall && SignalStore.accessibility.mayAnswerWithoutVideo) {
+      CallActionButton(
+        text = stringResource(R.string.WebRtcCallScreen__answer_without_video),
+        imageVector = ImageVector.vectorResource(R.drawable.symbol_video_slash_fill_24),
+        containerColor = Color.White,
+        contentColor = Color.Black,
+        onClick = callScreenControlsListener::onAcceptCallWithVoiceOnlyPressed,
+        modifier = Modifier.weight(1f)
+      )
+    }
+
+    CallActionButton(
+      text = stringResource(R.string.WebRtcCallScreen__answer),
+      imageVector = ImageVector.vectorResource(
+        if (isVideoCall) R.drawable.symbol_video_fill_24 else R.drawable.symbol_phone_fill_white_24
+      ),
+      containerColor = colorResource(id = R.color.webrtc_answer_background),
+      onClick = callScreenControlsListener::onAcceptCallPressed,
+      modifier = Modifier.weight(1f)
+    )
   }
 }
 

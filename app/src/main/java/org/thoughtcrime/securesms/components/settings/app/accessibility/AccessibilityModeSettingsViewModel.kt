@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.thoughtcrime.securesms.keyvalue.SignalStore
+import org.thoughtcrime.securesms.util.RemoteConfig
 
 class AccessibilityModeSettingsViewModel : ViewModel() {
 
@@ -32,6 +33,18 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
       is AccessibilityModeSettingsEvents.ToggleAllowCameraSwitch -> {
         SignalStore.accessibility.allowCameraSwitch = event.enabled
         _state.value = _state.value.copy(allowCameraSwitch = event.enabled)
+      }
+      is AccessibilityModeSettingsEvents.ToggleAllowAnswerWithoutVideo -> {
+        SignalStore.accessibility.allowAnswerWithoutVideo = event.enabled
+        _state.value = _state.value.copy(allowAnswerWithoutVideo = event.enabled)
+      }
+      is AccessibilityModeSettingsEvents.ToggleAllowScreenShare -> {
+        SignalStore.accessibility.allowScreenShare = event.enabled
+        _state.value = _state.value.copy(allowScreenShare = event.enabled)
+      }
+      is AccessibilityModeSettingsEvents.SetCallStartVolumePercent -> {
+        SignalStore.accessibility.callStartVolumePercent = event.percent
+        _state.value = _state.value.copy(callStartVolumePercent = event.percent)
       }
       AccessibilityModeSettingsEvents.RequestActivation -> {
         _state.value = _state.value.copy(showActivationDialog = true)
@@ -66,6 +79,12 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
       allowCameraToggle = SignalStore.accessibility.allowCameraToggle,
       allowMicToggle = SignalStore.accessibility.allowMicToggle,
       allowCameraSwitch = SignalStore.accessibility.allowCameraSwitch,
+      allowAnswerWithoutVideo = SignalStore.accessibility.allowAnswerWithoutVideo,
+      allowScreenShare = SignalStore.accessibility.allowScreenShare,
+      callStartVolumePercent = SignalStore.accessibility.callStartVolumePercent,
+      // The row stays off the page entirely when Signal's server has screen sharing switched off:
+      // a toggle that can never do anything is worse than no toggle.
+      screenShareAvailable = RemoteConfig.screenSharing,
       hasPin = SignalStore.svr.hasPin(),
       exitWithPin = SignalStore.accessibility.exitWithPin
     )

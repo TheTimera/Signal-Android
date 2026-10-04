@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -53,6 +55,7 @@ import org.signal.core.ui.isWidthCompact
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.avatar.AvatarImage
 import org.thoughtcrime.securesms.events.CallParticipant
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.recipients.rememberRecipientField
 import org.thoughtcrime.securesms.service.webrtc.links.CallLinkRoomId
@@ -77,7 +80,9 @@ fun CallScreenPreJoinOverlay(
   onCallInfoClick: () -> Unit = {},
   onCameraToggleClick: () -> Unit = {}
 ) {
-  val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable
+  // Accessibility Mode carries the camera switch in the control strip, where every other control
+  // sits. Signal's own one in the corner would be the second icon for the same thing.
+  val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable && !SignalStore.accessibility.simplifiesCallScreen
   val showInfoCard = callRecipient.isCallLink
 
   Box(
@@ -160,11 +165,12 @@ fun CallScreenPreJoinOverlay(
 }
 
 @Composable
-private fun PreJoinHeader(
+internal fun PreJoinHeader(
   callRecipient: Recipient,
   callStatus: String?,
   onNavigationClick: () -> Unit,
-  onCallInfoClick: () -> Unit
+  onCallInfoClick: () -> Unit,
+  showNavigationIcon: Boolean = true
 ) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
@@ -172,7 +178,8 @@ private fun PreJoinHeader(
   ) {
     CallScreenTopAppBar(
       onNavigationClick = onNavigationClick,
-      onCallInfoClick = onCallInfoClick
+      onCallInfoClick = onCallInfoClick,
+      showNavigationIcon = showNavigationIcon
     )
 
     AvatarImage(
@@ -359,6 +366,7 @@ fun CallScreenTopAppBar(
   callStatus: String? = null,
   onNavigationClick: () -> Unit = {},
   onCallInfoClick: () -> Unit = {},
+  showNavigationIcon: Boolean = true,
   modifier: Modifier = Modifier
 ) {
   val textShadow = remember {
@@ -370,11 +378,17 @@ fun CallScreenTopAppBar(
 
   TopAppBar(
     modifier = modifier,
+    // The 56.dp back button of Accessibility Mode does not fit a 64.dp bar with an even gap on
+    // every side: 24.dp status bar plus 12 plus 56 is already 92. The bar grows instead of the
+    // button shrinking -- it is the touch target the mode is there for.
+    expandedHeight = if (SignalStore.accessibility.simplifiesCallScreen) 80.dp else TopAppBarDefaults.TopAppBarExpandedHeight,
     colors = TopAppBarDefaults.topAppBarColors().copy(
       containerColor = Color.Transparent
     ),
     title = {
-      Column {
+      // With no navigation icon the bar insets the title by 16.dp; the mode wants the same 12.dp
+      // its back button keeps to the edge, hence the 4.dp back.
+      Column(modifier = if (!showNavigationIcon && SignalStore.accessibility.simplifiesCallScreen) Modifier.offset(x = (-4).dp) else Modifier) {
         if (callRecipient != null) {
           Text(
             text = callRecipient.getDisplayName(LocalContext.current),
@@ -392,26 +406,54 @@ fun CallScreenTopAppBar(
       }
     },
     navigationIcon = {
-      IconButton(
-        onClick = onNavigationClick
-      ) {
-        Icon(
-          painter = SignalIcons.ArrowStart.painter,
-          contentDescription = stringResource(id = R.string.CallScreenTopBar__go_back),
-          tint = Color.White
-        )
+      if (!showNavigationIcon) {
+        Unit
+      } else if (SignalStore.accessibility.simplifiesCallScreen) {
+        // The round tonal button the mode uses to go back on its own screens. Same tokens as
+        // ButtonDefaults.filledTonalButtonColors(), so it carries Signal's tonal style rather than a
+        // colour of my own. 56.dp and not the 96.dp of the mode's own screens: this app bar is
+        // 64.dp tall.
+        FilledTonalIconButton(
+          onClick = onNavigationClick,
+          modifier = Modifier
+            // 12.dp to the left edge: 8 here plus the 4 the bar inserts itself. Nothing on top --
+            // the bar centres its content, so the 80.dp height above leaves exactly (80-56)/2 = 12.
+            // Padding here would be added to that, not instead of it.
+            .padding(start = 8.dp)
+            .size(56.dp)
+        ) {
+          Icon(
+            painter = SignalIcons.ArrowStart.painter,
+            contentDescription = stringResource(id = R.string.CallScreenTopBar__go_back),
+            modifier = Modifier.size(28.dp)
+          )
+        }
+      } else {
+        IconButton(
+          onClick = onNavigationClick
+        ) {
+          Icon(
+            painter = SignalIcons.ArrowStart.painter,
+            contentDescription = stringResource(id = R.string.CallScreenTopBar__go_back),
+            tint = Color.White
+          )
+        }
       }
     },
     actions = {
-      IconButton(
-        onClick = onCallInfoClick,
-        modifier = Modifier.padding(16.dp)
-      ) {
-        Icon(
-          painter = SignalIcons.Info.painter,
-          contentDescription = stringResource(id = R.string.CallScreenTopBar__call_information),
-          tint = Color.White
-        )
+      // Call info lists participants and connection detail -- nothing the mode's user acts on, and
+      // the only thing the draggable sheet has to reveal.
+      if (!SignalStore.accessibility.simplifiesCallScreen) {
+        IconButton(
+          onClick = onCallInfoClick,
+          modifier = Modifier.padding(16.dp)
+        ) {
+          Icon(
+            painter = SignalIcons.Info.painter,
+            contentDescription = stringResource(id = R.string.CallScreenTopBar__call_information),
+            tint = Color.White
+          )
+        }
       }
     }
   )

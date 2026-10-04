@@ -397,7 +397,7 @@ private fun CallElementsLayoutPreview() {
         )
       },
       bottomInset = 120.dp,
-      bottomSheetWidth = CallScreenMetrics.SheetMaxWidth,
+      bottomSheetWidth = CallScreenMetrics.currentSheetMaxWidth,
       localRenderState = localRenderState
     )
   }

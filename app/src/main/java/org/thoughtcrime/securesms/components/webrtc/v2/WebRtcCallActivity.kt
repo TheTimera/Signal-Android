@@ -27,6 +27,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.util.Consumer
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -473,7 +474,7 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
       }
 
       WebRtcViewModel.State.CALL_OUTGOING -> handleOutgoingCall(event)
-      WebRtcViewModel.State.CALL_CONNECTED -> handleCallConnected(event)
+      WebRtcViewModel.State.CALL_CONNECTED -> handleCallConnected(event, justConnected = previousCallState != WebRtcViewModel.State.CALL_CONNECTED)
       WebRtcViewModel.State.CALL_RINGING -> handleCallRinging()
       WebRtcViewModel.State.CALL_BUSY -> handleCallBusy()
       WebRtcViewModel.State.CALL_DISCONNECTED -> {
@@ -978,6 +979,15 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
       startActivity(CalleeMustAcceptMessageRequestActivity.createIntent(this, recipient.id))
     }
 
+    if (SignalStore.accessibility.simplifiesCallScreen) {
+      // Signal keeps this screen around after a call and falls back to the lobby while it winds
+      // down -- measured on 3.10.2026: "Start Video Call" was back on screen 11 seconds after
+      // hanging up. In this mode that is an invitation to redial by accident, and it hides the
+      // "call ended" notice on the home screen behind it.
+      finish()
+      return
+    }
+
     delayedFinish()
   }
 
@@ -1006,11 +1016,36 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
     }
   }
 
-  private fun handleCallConnected(event: WebRtcViewModel) {
+  private fun handleCallConnected(event: WebRtcViewModel, justConnected: Boolean) {
     window.addFlags(WindowManager.LayoutParams.FLAG_IGNORE_CHEEK_PRESSES)
     if (event.groupState.isNotIdleOrConnected) {
       callScreen.setStatusFromGroupCallState(this, event.groupState)
     }
+
+    // Only on the way into a connected call, not on every repeat of the event: a reconnect would
+    // otherwise undo whatever the user set by hand while talking.
+    if (justConnected) {
+      applyAccessibilityStartVolume()
+    }
+  }
+
+  /**
+   * Starts a call at the volume the caregiver chose, so it can never begin inaudible. Applied on
+   * connect rather than when dialling: STREAM_VOICE_CALL only carries the call once it is running,
+   * and a level set before that is not the one that will be heard.
+   */
+  private fun applyAccessibilityStartVolume() {
+    if (!SignalStore.accessibility.isEnabled) {
+      return
+    }
+
+    val audioManager = ContextCompat.getSystemService(this, AudioManager::class.java) ?: return
+    val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)
+    val min = if (Build.VERSION.SDK_INT >= 28) audioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL) else 0
+    val target = SignalStore.accessibility.callStartVolumeIndex(min, max)
+
+    audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, target, 0)
+    Log.i(TAG, "Accessibility Mode: call volume set to $target on a $min..$max scale.")
   }
 
   private fun handleCallReconnecting() {

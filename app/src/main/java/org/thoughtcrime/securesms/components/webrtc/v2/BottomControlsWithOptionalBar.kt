@@ -41,7 +41,7 @@ internal fun BottomControlsWithOptionalBar(
   controlsRow: @Composable () -> Unit,
   barSlot: @Composable () -> Unit
 ) {
-  val sheetMaxWidthPx = with(LocalDensity.current) { CallScreenMetrics.SheetMaxWidth.roundToPx() }
+  val sheetMaxWidthPx = with(LocalDensity.current) { CallScreenMetrics.currentSheetMaxWidth.roundToPx() }
   val spacingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
   val elementBottomPaddingPx = with(LocalDensity.current) { 16.dp.roundToPx() }
   val bottomSheetPaddingPx = with(LocalDensity.current) { bottomSheetPadding.roundToPx() }

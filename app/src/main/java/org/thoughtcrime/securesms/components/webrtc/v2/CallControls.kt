@@ -57,6 +57,7 @@ fun CallControls(
   modifier: Modifier = Modifier
 ) {
   val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+  val simplified = SignalStore.accessibility.simplifiesCallScreen
 
   val density = LocalDensity.current
   val bottom = with(density) { WindowInsets.navigationBarsIgnoringVisibility.getBottom(density).toDp() }
@@ -70,7 +71,10 @@ fun CallControls(
       horizontalArrangement = Arrangement.spaceBetweenUpTo(20.dp),
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
     ) {
-      if (callControlsState.displayAudioOutputToggle) {
+      // In the mode the audio button appears for a frame next to "Start Video Call" while the
+      // state crosses from lobby to call. Held back until the call is actually running, which is
+      // also the only time its setting means anything.
+      if (callControlsState.displayAudioOutputToggle && !(simplified && callControlsState.displayStartCallButton)) {
         CallAudioToggleButton(
           contentDescription = stringResource(id = R.string.WebRtcAudioOutputToggle__audio_output),
           onSheetDisplayChanged = callScreenSheetDisplayListener::onAudioDeviceSheetDisplayChanged,
@@ -109,7 +113,26 @@ fun CallControls(
         )
       }
 
-      if (callControlsState.displayAdditionalActions) {
+      // Accessibility Mode puts the camera switch where the overflow used to be: raising a hand and
+      // sharing a screen are not things its user does, switching cameras is.
+      // Three conditions, all of them load-bearing: the caregiver allowed it, the device really has
+      // a second camera (Camera.flip() asserts and kills the process otherwise), and video is on.
+      if (simplified &&
+        SignalStore.accessibility.allowCameraSwitch &&
+        callControlsState.isMoreThanOneCameraAvailable &&
+        callControlsState.isVideoEnabled
+      ) {
+        SwitchCameraDirectionButton(onClick = callScreenControlsListener::onCameraDirectionChanged)
+      }
+
+      if (simplified && SignalStore.accessibility.allowScreenShare && callControlsState.displayScreenShareToggle) {
+        ToggleScreenShareButton(
+          isScreenSharing = callControlsState.isLocalScreenSharing,
+          onChange = callScreenControlsListener::onScreenShareChanged
+        )
+      }
+
+      if (!simplified && callControlsState.displayAdditionalActions) {
         AdditionalActionsButton(
           onClick = callScreenControlsListener::onOverflowClicked,
           modifier = Modifier.popupTrigger(additionalActionsState.triggerAlignedPopupState)
@@ -117,7 +140,11 @@ fun CallControls(
       }
 
       if (callControlsState.displayEndCallButton) {
-        HangupButton(onClick = callScreenControlsListener::onEndCallPressed)
+        if (simplified) {
+          EndVideoCallButton(onClick = callScreenControlsListener::onEndCallPressed)
+        } else {
+          HangupButton(onClick = callScreenControlsListener::onEndCallPressed)
+        }
       }
 
       if (callControlsState.displayStartCallButton && !isPortrait) {
@@ -441,7 +468,18 @@ data class CallControlsState(
   val displayStartCallButton: Boolean = false,
   val startCallButtonText: Int = R.string.WebRtcCallView__start_call,
   val displayEndCallButton: Boolean = false,
-  val isLocalScreenSharing: Boolean = false
+  val isLocalScreenSharing: Boolean = false,
+  /**
+   * Signal offers screen sharing only during a call and only while its own remote flag is on; the
+   * mode's button follows the same rule instead of inventing a second one.
+   */
+  val displayScreenShareToggle: Boolean = false,
+  /**
+   * Without a second camera, Camera.flip() throws an AssertionError and takes the process with it.
+   * Signal's own switch button in the self preview is guarded by this; the one Accessibility Mode
+   * puts in the control strip has to be too.
+   */
+  val isMoreThanOneCameraAvailable: Boolean = false
 ) {
 
   val hasAnyControls: Boolean
@@ -486,9 +524,17 @@ data class CallControlsState(
         isGroupRingingAllowed = groupMemberCount <= RemoteConfig.maxGroupCallRingSize,
         displayAdditionalActions = webRtcControls.displayOverflow(),
         displayStartCallButton = webRtcControls.displayStartCallControls(),
-        startCallButtonText = webRtcControls.startCallButtonText,
+        // "Start Call" is ambiguous where the mode only ever places video calls.
+        startCallButtonText = if (SignalStore.accessibility.simplifiesCallScreen) {
+          R.string.WebRtcCallView__start_video_call
+        } else {
+          webRtcControls.startCallButtonText
+        },
         displayEndCallButton = webRtcControls.displayEndCall(),
-        isLocalScreenSharing = isLocalScreenSharing
+        isLocalScreenSharing = isLocalScreenSharing,
+        // Same pair of conditions CallScreen.kt uses for the overflow entry.
+        displayScreenShareToggle = webRtcControls.displayEndCall() && RemoteConfig.screenSharing,
+        isMoreThanOneCameraAvailable = callParticipantsState.localParticipant.isMoreThanOneCameraAvailable
       )
     }
   }

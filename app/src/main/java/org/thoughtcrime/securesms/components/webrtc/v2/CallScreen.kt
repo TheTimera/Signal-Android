@@ -19,6 +19,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -71,6 +72,7 @@ import org.signal.core.ui.compose.BottomSheets
 import org.signal.core.ui.compose.Previews
 import org.signal.core.ui.compose.SignalIcons
 import org.signal.core.ui.compose.TriggerAlignedPopupState
+import org.signal.core.ui.compose.navigationBarsCompat
 import org.signal.core.ui.compose.theme.SignalTheme
 import org.signal.core.util.DimensionUnit
 import org.signal.emoji.EmojiStrings
@@ -83,6 +85,7 @@ import org.thoughtcrime.securesms.events.CallParticipantId
 import org.thoughtcrime.securesms.events.GroupCallRaiseHandEvent
 import org.thoughtcrime.securesms.events.GroupCallReactionEvent
 import org.thoughtcrime.securesms.events.WebRtcViewModel
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.ringrtc.CameraState
@@ -214,15 +217,25 @@ fun CallScreen(
     var peekHeight by remember { mutableFloatStateOf(88f) }
     val effectivePeekHeight = if (callControlsState.hasAnyControls) peekHeight else 0f
 
+    // Dragging the sheet open only reveals the call info, which Accessibility Mode does not show.
+    // Without the drag the handle is a promise the sheet no longer keeps, so it goes too.
+    val simplified = SignalStore.accessibility.simplifiesCallScreen
+
     BottomSheetScaffold(
       scaffoldState = callScreenController.scaffoldState,
       sheetDragHandle = null,
+      sheetSwipeEnabled = !simplified,
       sheetPeekHeight = effectivePeekHeight.dp,
       sheetContainerColor = SignalTheme.colors.colorSurface1,
       containerColor = Color.Black,
-      sheetMaxWidth = CallScreenMetrics.SheetMaxWidth,
+      sheetMaxWidth = CallScreenMetrics.currentSheetMaxWidth,
       sheetContent = {
-        BottomSheets.Handle(modifier = Modifier.align(Alignment.CenterHorizontally))
+        if (simplified) {
+          // Keeps the handle's 22.dp so the controls do not ride up against the sheet's top edge.
+          Spacer(modifier = Modifier.height(22.dp))
+        } else {
+          BottomSheets.Handle(modifier = Modifier.align(Alignment.CenterHorizontally))
+        }
 
         AdditionalActionsPopup(
           onDismissRequest = callScreenControlsListener::onDismissOverflow,
@@ -483,7 +496,7 @@ fun CallScreen(
           },
           bottomInset = bottomInset,
           pipBottomInset = pipBottomInset,
-          bottomSheetWidth = CallScreenMetrics.SheetMaxWidth,
+          bottomSheetWidth = CallScreenMetrics.currentSheetMaxWidth,
           isLocalVideoLandscape = isLocalVideoLandscape,
           pipMargin = pipMargin,
           localRenderState = localRenderState,
@@ -500,6 +513,9 @@ fun CallScreen(
             callStatus = callScreenState.callStatus,
             onNavigationClick = onNavigationClick,
             onCallInfoClick = onCallInfoClick,
+            // No way back out of a running call except hanging up: the arrow here would only put
+            // the call in the background, which in this mode leaves no way to return to it.
+            showNavigationIcon = !simplified,
             modifier = Modifier.padding(bottom = padding)
           )
         }
@@ -516,6 +532,23 @@ fun CallScreen(
             .align(Alignment.BottomCenter)
             .padding(bottom = 20.dp)
         )
+
+        // Shown with the rest of the controls, not on a schedule of its own: the same sheet state
+        // the top bar watches, so all of it fades together when "Always show call controls" is off.
+        // Tied to the hang up button for the second half, because there is nothing to make louder
+        // before a call is running.
+        AnimatedVisibility(
+          visible = simplified && callControlsState.displayEndCallButton && scaffoldState.bottomSheetState.targetValue != SheetValue.Hidden,
+          enter = fadeIn(),
+          exit = fadeOut(),
+          modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+          CallVolumeControls(
+            modifier = Modifier
+              .windowInsetsPadding(WindowInsets.navigationBarsCompat)
+              .padding(end = 16.dp)
+          )
+        }
       }
     }
   }

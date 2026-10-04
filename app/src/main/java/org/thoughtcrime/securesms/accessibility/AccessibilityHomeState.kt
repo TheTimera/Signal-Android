@@ -18,8 +18,21 @@ data class AccessibilityContact(
   val name: String
 )
 
+/**
+ * The call that just ended, while it is still worth saying so.
+ *
+ * [endedAtMillis] rather than a countdown: the screen can be left and come back, and the notice has
+ * to disappear on time either way.
+ */
+@Immutable
+data class AccessibilityEndedCall(
+  val durationMillis: Long,
+  val endedAtMillis: Long
+)
+
 @Immutable
 data class AccessibilityHomeState(
   val loading: Boolean = true,
-  val contacts: List<AccessibilityContact> = emptyList()
+  val contacts: List<AccessibilityContact> = emptyList(),
+  val endedCall: AccessibilityEndedCall? = null
 )

@@ -41,10 +41,14 @@ enum class AccessibilityTapCorner(private val code: Long) {
  * either behind the Signal PIN or behind a tap gesture.
  *
  * Defaults are taken from the design, not chosen freely:
- *  - [isVideoCallOnly] is not stored at all, see the property for why.
  *  - [exitWithPin] on, because the design states "Use Signal-PIN (default if PIN is set)".
- *  - [iconsAlwaysVisible] on and the three exception toggles off, as shown on design screen 130.
+ *  - [iconsAlwaysVisible] on and the exception toggles off, as shown on design screen 130: "The
+ *    default setting is Video-Call Only, but you can allow users to toggle the camera and
+ *    microphone on and off."
  *  - [tapCount] 7, [tapWindowMillis] 2000 and [tapCorner] top right, as labelled in the design.
+ *
+ * [allowScreenShare] has no counterpart in the design; it follows the same shape as the three it
+ * was added next to.
  */
 class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
 
@@ -54,6 +58,9 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     const val ALLOW_CAMERA_TOGGLE = "accessibility.allow_camera_toggle"
     const val ALLOW_MIC_TOGGLE = "accessibility.allow_mic_toggle"
     const val ALLOW_CAMERA_SWITCH = "accessibility.allow_camera_switch"
+    const val ALLOW_SCREEN_SHARE = "accessibility.allow_screen_share"
+    const val ALLOW_ANSWER_WITHOUT_VIDEO = "accessibility.allow_answer_without_video"
+    const val CALL_START_VOLUME_PERCENT = "accessibility.call_start_volume_percent"
     const val EXIT_WITH_PIN = "accessibility.exit_with_pin"
     const val TAP_COUNT = "accessibility.tap_count"
     const val TAP_WINDOW_MILLIS = "accessibility.tap_window_millis"
@@ -73,20 +80,53 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
 
   var iconsAlwaysVisible: Boolean by booleanValue(ICONS_ALWAYS_VISIBLE, true)
 
+  var allowCameraToggle: Boolean by booleanValue(ALLOW_CAMERA_TOGGLE, false)
+
+  var allowMicToggle: Boolean by booleanValue(ALLOW_MIC_TOGGLE, false)
+
+  var allowCameraSwitch: Boolean by booleanValue(ALLOW_CAMERA_SWITCH, false)
+
+  var allowScreenShare: Boolean by booleanValue(ALLOW_SCREEN_SHARE, false)
+
   /**
-   * Derived rather than stored. The design's settings screen has no "Video-Call only" switch of its
-   * own; it says "The default setting is 'Video-Call Only,' but you can allow users to toggle the
-   * camera and microphone on and off". The restriction therefore holds exactly as long as no
-   * exception has been granted. A separate stored flag could contradict the three below.
+   * Whether an incoming call can be answered with the camera off. Defaults to on, unlike its
+   * neighbours: this one takes something away from the answering screen rather than adding to it,
+   * and a call you cannot take without video is a call you may not take at all.
    */
-  val isVideoCallOnly: Boolean
-    get() = !allowCameraToggle && !allowMicToggle && !allowCameraSwitch
+  var allowAnswerWithoutVideo: Boolean by booleanValue(ALLOW_ANSWER_WITHOUT_VIDEO, true)
+
+  /**
+   * How loud a call starts, as a percentage of the device's own call volume scale. Stored as a
+   * percentage rather than a volume index because that scale differs per device -- 5 steps here, 15
+   * on the next phone -- and a stored index would mean something else on each.
+   *
+   * 80 by default: the mode exists for people who would not find the volume rocker, so starting
+   * quiet and hoping they fix it is the wrong way round.
+   */
+  var callStartVolumePercent: Int by integerValue(CALL_START_VOLUME_PERCENT, 80)
+
+  /**
+   * The volume index to set when a call connects, on a scale that runs from [deviceMin] to
+   * [deviceMax].
+   *
+   * Never returns the bottom of the scale when that would be silence: the whole point is that a call
+   * is never started muted. Hence the coerce to at least one step above a zero minimum.
+   */
+  fun callStartVolumeIndex(deviceMin: Int, deviceMax: Int): Int {
+    val span = deviceMax - deviceMin
+    val raw = deviceMin + Math.round(span * callStartVolumePercent / 100f)
+
+    return raw.coerceIn(maxOf(deviceMin, 1), deviceMax)
+  }
+
+  val forcesControlsVisible: Boolean
+    get() = isEnabled && iconsAlwaysVisible
 
   /*
    * The questions the call screen actually asks. Each answers "yes" whenever the mode is off, so
    * call sites can ask unconditionally instead of repeating the [isEnabled] check -- that repeated
    * check is what would drift apart over time. Named differently from the stored flags above on
-   * purpose: "may…" is the policy, "allow…" is what the caregiver ticked.
+   * purpose: "may..." is the policy, "allow..." is what the caregiver ticked.
    */
 
   val mayToggleCamera: Boolean
@@ -98,8 +138,15 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
   val maySwitchCamera: Boolean
     get() = !isEnabled || allowCameraSwitch
 
-  val forcesControlsVisible: Boolean
-    get() = isEnabled && iconsAlwaysVisible
+  /**
+   * Outside the mode this answers "yes" like its neighbours, but Signal's own screen share entry
+   * sits behind the overflow menu and its own remote flag -- so nothing changes there.
+   */
+  val mayShareScreen: Boolean
+    get() = !isEnabled || allowScreenShare
+
+  val mayAnswerWithoutVideo: Boolean
+    get() = !isEnabled || allowAnswerWithoutVideo
 
   /**
    * Whether to hold back popups nobody asked for -- app rating, PIN reminder and the other
@@ -111,11 +158,14 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
   val suppressesPopups: Boolean
     get() = isEnabled
 
-  var allowCameraToggle: Boolean by booleanValue(ALLOW_CAMERA_TOGGLE, false)
-
-  var allowMicToggle: Boolean by booleanValue(ALLOW_MIC_TOGGLE, false)
-
-  var allowCameraSwitch: Boolean by booleanValue(ALLOW_CAMERA_SWITCH, false)
+  /**
+   * Whether Signal's call screen drops the chrome the mode has no use for: the call info button, the
+   * draggable sheet that reveals it, and the plain back arrow, which becomes the same round tonal
+   * button the mode uses elsewhere. Phrased as one question rather than four, because they are one
+   * decision -- a screen with exactly two things on it, the person and the way to call them.
+   */
+  val simplifiesCallScreen: Boolean
+    get() = isEnabled
 
   var exitWithPin: Boolean by booleanValue(EXIT_WITH_PIN, true)
 

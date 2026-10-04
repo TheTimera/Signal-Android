@@ -555,7 +555,8 @@ class MainActivity :
             onExit = {
               SignalStore.accessibility.isEnabled = false
               accessibilityModeEnabled = false
-            }
+            },
+            onEndedCallExpired = accessibilityHomeViewModel::dismissEndedCall
           )
         }
       }
@@ -789,6 +790,12 @@ class MainActivity :
 
     // Picks up a switch made in app settings while this Activity was stopped.
     accessibilityModeEnabled = SignalStore.accessibility.isEnabled
+
+    if (accessibilityModeEnabled) {
+      // Names follow their recipient: a nickname set in the meantime, or a contact that moved up
+      // the recent list during a call, only arrives if the tiles are read again.
+      accessibilityHomeViewModel.load()
+    }
 
     // The flags stay set while suppressed, so each of these is deferred to the next resume outside
     // of accessibility mode rather than swallowed.

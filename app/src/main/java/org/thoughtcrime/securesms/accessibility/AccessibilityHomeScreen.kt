@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -30,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,22 +40,28 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.signal.core.ui.compose.Buttons
+import kotlinx.coroutines.delay
 import org.signal.core.ui.compose.Dialogs
 import org.signal.core.ui.compose.SignalIcons
 import org.signal.core.ui.compose.statusBarsCompat
+import org.signal.core.util.EllapsedTimeFormatter
 import org.thoughtcrime.securesms.avatar.AvatarImage
 import org.thoughtcrime.securesms.keyvalue.AccessibilityTapCorner
 import org.thoughtcrime.securesms.recipients.RecipientId
 
 private val TILE_WIDTH = 280.dp
 
+/** Reserved for the "call ended" notice, so the tiles do not move when it comes and goes. */
+private val NOTICE_HEIGHT = 108.dp
+
 /** How big the invisible exit target is. Large enough to hit, small enough to miss by accident. */
 private val EXIT_TARGET_SIZE = 84.dp
 
 /**
- * The whole app while Accessibility Mode is on. Two steps only: pick a contact, then confirm the
- * call. The confirmation exists so a stray touch on a tile does not ring somebody's phone.
+ * The whole app while Accessibility Mode is on: one tile per contact, and tapping one goes straight
+ * into Signal's own call lobby. The lobby already shows who is about to be called and asks for a
+ * second tap on "Start Video Call", so a confirmation screen of our own sat in front of it saying
+ * the same thing twice.
  *
  * Exactly one way back out is offered, matching the configured method:
  *  - PIN method: an overflow button in the top right, which asks for the Signal PIN.
@@ -72,46 +78,32 @@ fun AccessibilityHomeScreen(
   exitTapCount: Int,
   exitTapWindowMillis: Int,
   onCallClick: (RecipientId) -> Unit,
-  onExit: () -> Unit
+  onExit: () -> Unit,
+  onEndedCallExpired: () -> Unit
 ) {
   var showPinDialog by remember { mutableStateOf(false) }
   var showTapConfirmation by remember { mutableStateOf(false) }
-  var selectedContact by remember { mutableStateOf<AccessibilityContact?>(null) }
 
-  // The system back gesture does what the visible back button does, and does nothing at all on the
-  // contact list: leaving the app is what the configured exit method is for, and a stray back press
-  // must not drop the user onto the launcher with no way of finding Signal again.
-  BackHandler {
-    selectedContact = null
-  }
+  // Swallows the system back gesture: this is the only screen the mode has, leaving the app is what
+  // the configured exit method is for, and a stray back press must not drop the user onto the
+  // launcher with no way of finding Signal again.
+  BackHandler { }
 
   Surface(
     modifier = Modifier.fillMaxSize(),
     color = MaterialTheme.colorScheme.surface
   ) {
-    val chosen = selectedContact
-
-    if (chosen != null) {
-      CallConfirmation(
-        contact = chosen,
-        onStartCall = {
-          selectedContact = null
-          onCallClick(chosen.id)
-        },
-        onBack = { selectedContact = null }
-      )
-    } else {
-      ContactPicker(
-        state = state,
-        pinExitEnabled = pinExitEnabled,
-        exitCorner = exitCorner,
-        exitTapCount = exitTapCount,
-        exitTapWindowMillis = exitTapWindowMillis,
-        onContactSelected = { selectedContact = it },
-        onOverflowClick = { showPinDialog = true },
-        onTapPatternCompleted = { showTapConfirmation = true }
-      )
-    }
+    ContactPicker(
+      state = state,
+      pinExitEnabled = pinExitEnabled,
+      exitCorner = exitCorner,
+      exitTapCount = exitTapCount,
+      exitTapWindowMillis = exitTapWindowMillis,
+      onContactSelected = { onCallClick(it.id) },
+      onOverflowClick = { showPinDialog = true },
+      onTapPatternCompleted = { showTapConfirmation = true },
+      onEndedCallExpired = onEndedCallExpired
+    )
   }
 
   if (showPinDialog) {
@@ -139,6 +131,53 @@ fun AccessibilityHomeScreen(
   }
 }
 
+/**
+ * "Video-Call ended" and how long it lasted, for [ENDED_CALL_NOTICE_MILLIS] after hanging up.
+ *
+ * Holds its height even when there is nothing to say. The alternative -- appearing and disappearing
+ * above the tiles -- would move the tiles twice per call, and this screen's whole point is that the
+ * target stays where it was.
+ */
+@Composable
+private fun EndedCallNotice(
+  endedCall: AccessibilityEndedCall?,
+  onExpired: () -> Unit
+) {
+  val remaining = endedCall?.let { ENDED_CALL_NOTICE_MILLIS - (System.currentTimeMillis() - it.endedAtMillis) }
+
+  LaunchedEffect(endedCall) {
+    if (endedCall != null) {
+      delay(remaining?.coerceAtLeast(0L) ?: 0L)
+      onExpired()
+    }
+  }
+
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier = Modifier.height(NOTICE_HEIGHT)
+  ) {
+    if (endedCall != null && (remaining ?: 0L) > 0L) {
+      Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+          text = "Video-Call ended",
+          style = MaterialTheme.typography.headlineMedium,
+          color = MaterialTheme.colorScheme.error
+        )
+
+        Text(
+          // Seconds, despite the name: fromDurationMillis divides by 3600 and 60, and Signal's own
+          // call screen feeds it the elapsed seconds. Passing millis showed 14:27:18 for a 52
+          // second call.
+          text = EllapsedTimeFormatter.fromDurationMillis(endedCall.durationMillis / 1000)?.toString() ?: "00:00",
+          style = MaterialTheme.typography.headlineSmall,
+          color = MaterialTheme.colorScheme.error,
+          modifier = Modifier.padding(top = 8.dp)
+        )
+      }
+    }
+  }
+}
+
 @Composable
 private fun ContactPicker(
   state: AccessibilityHomeState,
@@ -148,7 +187,8 @@ private fun ContactPicker(
   exitTapWindowMillis: Int,
   onContactSelected: (AccessibilityContact) -> Unit,
   onOverflowClick: () -> Unit,
-  onTapPatternCompleted: () -> Unit
+  onTapPatternCompleted: () -> Unit,
+  onEndedCallExpired: () -> Unit
 ) {
   Box(modifier = Modifier.fillMaxSize()) {
     when {
@@ -168,17 +208,28 @@ private fun ContactPicker(
       }
 
       else -> {
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(24.dp),
-          verticalAlignment = Alignment.CenterVertically,
+        Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
           modifier = Modifier.align(Alignment.Center)
         ) {
-          state.contacts.forEach { contact ->
-            ContactTile(
-              contact = contact,
-              onClick = { onContactSelected(contact) },
-              modifier = Modifier.width(TILE_WIDTH)
-            )
+          // Laid out above the tiles but without moving them: the notice and its placeholder are
+          // the same height, so a tile never shifts under a finger that is already on its way.
+          EndedCallNotice(
+            endedCall = state.endedCall,
+            onExpired = onEndedCallExpired
+          )
+
+          Row(
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            state.contacts.forEach { contact ->
+              ContactTile(
+                contact = contact,
+                onClick = { onContactSelected(contact) },
+                modifier = Modifier.width(TILE_WIDTH)
+              )
+            }
           }
         }
       }
@@ -214,77 +265,6 @@ private fun ContactPicker(
           }
         )
       )
-    }
-  }
-}
-
-/**
- * Follows the design's call screen: who you are about to call, one button to do it, and one way
- * back. Deliberately nothing else -- no overflow button here, the back button is the only escape.
- */
-@Composable
-private fun CallConfirmation(
-  contact: AccessibilityContact,
-  onStartCall: () -> Unit,
-  onBack: () -> Unit
-) {
-  Column(
-    modifier = Modifier.fillMaxSize(),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center
-  ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      AvatarImage(
-        recipientId = contact.id,
-        modifier = Modifier
-          .size(120.dp)
-          .clip(CircleShape)
-      )
-
-      Text(
-        text = contact.name,
-        style = MaterialTheme.typography.headlineMedium,
-        fontSize = 34.sp,
-        modifier = Modifier.padding(start = 28.dp)
-      )
-    }
-
-    Spacer(modifier = Modifier.height(72.dp))
-
-    Buttons.LargePrimary(
-      onClick = onStartCall,
-      modifier = Modifier.padding(horizontal = 24.dp)
-    ) {
-      Text(
-        text = "Start video call",
-        fontSize = 26.sp,
-        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-      )
-    }
-
-    Spacer(modifier = Modifier.height(88.dp))
-
-    Surface(
-      onClick = onBack,
-      shape = CircleShape,
-      // The same tokens Buttons.LargeTonal uses via ButtonDefaults.filledTonalButtonColors(), so
-      // this round button carries Signal's tonal style rather than a colour of my own choosing.
-      color = MaterialTheme.colorScheme.secondaryContainer,
-      contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-      modifier = Modifier.size(96.dp)
-    ) {
-      // fillMaxSize so the touch target really is the whole circle, not just the 40dp glyph.
-      Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
-      ) {
-        Icon(
-          imageVector = SignalIcons.ArrowStart.imageVector,
-          contentDescription = "Back",
-          tint = MaterialTheme.colorScheme.onSecondaryContainer,
-          modifier = Modifier.size(40.dp)
-        )
-      }
     }
   }
 }

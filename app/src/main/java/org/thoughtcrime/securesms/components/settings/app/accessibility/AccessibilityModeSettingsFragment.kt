@@ -29,6 +29,13 @@ import org.thoughtcrime.securesms.lock.v2.CreateSvrPinActivity
 import org.thoughtcrime.securesms.util.navigation.safeNavigate
 
 /**
+ * Ten per cent steps, and no zero: the point of the setting is that a call never starts silent, so
+ * silence is not on the list.
+ */
+private val VOLUME_VALUES = (10..100 step 10).map { it.toString() }.toTypedArray()
+private val VOLUME_LABELS = VOLUME_VALUES.map { "$it %" }.toTypedArray()
+
+/**
  * Caregiver-facing configuration for Accessibility Mode.
  *
  * The structure follows the design (screen 130); the wording was rewritten to match Signal's own
@@ -118,7 +125,7 @@ private fun AccessibilityModeSettingsContent(
 
       item {
         Text(
-          text = "Calls are video only by default. You can add buttons that let the person turn off their camera or microphone, or switch between the front and rear camera.",
+          text = "The default setting is \"Video-Call Only,\" but you can allow users to toggle the camera and microphone on and off. Additionally, you can provide an option to switch between the front and rear cameras.",
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           modifier = Modifier
@@ -130,17 +137,26 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowCameraToggle,
-          text = "Allow turning the camera off",
-          label = "Adds a camera button to the call screen.",
+          text = "Camera on/off - Toggle",
+          label = "Gives the option to turn the camera off and on again.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowCameraToggle(it)) }
         )
       }
 
       item {
         Rows.ToggleRow(
+          checked = state.allowAnswerWithoutVideo,
+          text = "Answer without video - Toggle",
+          label = "Gives the option to take an incoming call with the camera off. Shown on the answering screen only.",
+          onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowAnswerWithoutVideo(it)) }
+        )
+      }
+
+      item {
+        Rows.ToggleRow(
           checked = state.allowMicToggle,
-          text = "Allow muting the microphone",
-          label = "Adds a microphone button to the call screen.",
+          text = "Microphone on/off - Toggle",
+          label = "Gives the option to turn the microphone off and on again.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowMicToggle(it)) }
         )
       }
@@ -148,10 +164,31 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowCameraSwitch,
-          text = "Allow switching cameras",
-          label = "Adds a button to switch between the front and rear camera.",
+          text = "Switch Cameras front/rear - Toggle",
+          label = "Gives the option to switch to the rear camera and back to front again.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowCameraSwitch(it)) }
         )
+      }
+
+      item {
+        Rows.RadioListRow(
+          text = "Volume at the start of a call",
+          labels = VOLUME_LABELS,
+          values = VOLUME_VALUES,
+          selectedValue = state.callStartVolumePercent.toString(),
+          onSelected = { onEvent(AccessibilityModeSettingsEvents.SetCallStartVolumePercent(it.toInt())) }
+        )
+      }
+
+      if (state.screenShareAvailable) {
+        item {
+          Rows.ToggleRow(
+            checked = state.allowScreenShare,
+            text = "Share Screen on/off - Toggle",
+            label = "Gives the option to share the screen and stop sharing again.",
+            onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowScreenShare(it)) }
+          )
+        }
       }
 
       item {

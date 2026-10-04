@@ -6,7 +6,6 @@
 package org.thoughtcrime.securesms.components.settings.app.accessibility
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -21,7 +20,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -29,11 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.signal.core.ui.compose.Dialogs
-import org.thoughtcrime.securesms.keyvalue.SignalStore
-import org.whispersystems.signalservice.api.kbs.PinHashUtil
-
-/** Signal enforces a minimum PIN length; below it there is nothing worth checking. */
-private const val MIN_PIN_LENGTH = 4
+import org.thoughtcrime.securesms.accessibility.rememberPinCheck
 
 /**
  * The pre-activation dialog from the design (screen 144).
@@ -55,8 +49,7 @@ fun AccessibilityActivationDialog(
   onConfirm: () -> Unit
 ) {
   var pin by remember { mutableStateOf("") }
-  var verified by remember { mutableStateOf(false) }
-  var lastAttemptFailed by remember { mutableStateOf(false) }
+  val pinCheck = rememberPinCheck(pin)
 
   Dialogs.BaseAlertDialog(
     onDismissRequest = onDismiss,
@@ -75,44 +68,26 @@ fun AccessibilityActivationDialog(
 
             OutlinedTextField(
               value = pin,
-              onValueChange = {
-                pin = it
-                verified = false
-                lastAttemptFailed = false
-              },
+              onValueChange = { pin = it },
               label = { Text(text = "Signal PIN") },
               singleLine = true,
-              enabled = !verified,
               visualTransformation = PasswordVisualTransformation(),
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-              isError = lastAttemptFailed,
+              isError = pinCheck.failed,
               modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              TextButton(
-                onClick = {
-                  // Deliberately on a button press rather than per keystroke: this runs Argon2, so
-                  // checking on every character typed would make the field stutter.
-                  val hash = SignalStore.svr.localPinHash
-                  val ok = hash != null && PinHashUtil.verifyLocalPinHash(hash, pin)
-                  verified = ok
-                  lastAttemptFailed = !ok
-                },
-                enabled = pin.length >= MIN_PIN_LENGTH && !verified
-              ) {
-                Text(text = if (verified) "PIN confirmed" else "Verify")
-              }
-
-              if (lastAttemptFailed) {
-                Text(
-                  text = "That is not your Signal PIN.",
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.error
-                )
-              }
+            // No "Verify" button: rememberPinCheck watches the field and "Understood" stays
+            // disabled until the PIN is right.
+            if (pinCheck.failed) {
+              Text(
+                text = "That is not your Signal PIN.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp)
+              )
             }
           }
 
@@ -168,7 +143,7 @@ fun AccessibilityActivationDialog(
     confirmButton = {
       TextButton(
         onClick = onConfirm,
-        enabled = verified || !pinIsExitMethod
+        enabled = pinCheck.verified || !pinIsExitMethod
       ) {
         Text(text = "Understood")
       }
