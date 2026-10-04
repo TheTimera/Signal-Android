@@ -71,10 +71,11 @@ fun CallControls(
       horizontalArrangement = Arrangement.spaceBetweenUpTo(20.dp),
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
     ) {
-      // In the mode the audio button appears for a frame next to "Start Video Call" while the
-      // state crosses from lobby to call. Held back until the call is actually running, which is
-      // also the only time its setting means anything.
-      if (callControlsState.displayAudioOutputToggle && !(simplified && callControlsState.displayStartCallButton)) {
+      // Never in the mode. Signal shows this button only while the local video is off or a headset
+      // is attached (WebRtcControls.displayAudioToggle), which in a video-only mode means only for
+      // the moment between answering and the camera starting -- it flashed and vanished. The route
+      // is decided by "Always use the speaker" instead.
+      if (callControlsState.displayAudioOutputToggle && !simplified) {
         CallAudioToggleButton(
           contentDescription = stringResource(id = R.string.WebRtcAudioOutputToggle__audio_output),
           onSheetDisplayChanged = callScreenSheetDisplayListener::onAudioDeviceSheetDisplayChanged,
@@ -145,6 +146,13 @@ fun CallControls(
         } else {
           HangupButton(onClick = callScreenControlsListener::onEndCallPressed)
         }
+      }
+
+      // In the mode the back arrow lives here rather than in the top bar: it belongs to the same
+      // decision as "Start Video Call" -- place the call or do not -- and the two are then one
+      // glance apart instead of at opposite corners.
+      if (simplified && callControlsState.displayStartCallButton) {
+        CallBackButton(onClick = callScreenControlsListener::onNavigateUpClicked)
       }
 
       if (callControlsState.displayStartCallButton && !isPortrait) {

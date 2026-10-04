@@ -60,6 +60,7 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     const val ALLOW_CAMERA_SWITCH = "accessibility.allow_camera_switch"
     const val ALLOW_SCREEN_SHARE = "accessibility.allow_screen_share"
     const val ALLOW_ANSWER_WITHOUT_VIDEO = "accessibility.allow_answer_without_video"
+    const val SPEAKER_ALWAYS_ON = "accessibility.speaker_always_on"
     const val CALL_START_VOLUME_PERCENT = "accessibility.call_start_volume_percent"
     const val EXIT_WITH_PIN = "accessibility.exit_with_pin"
     const val TAP_COUNT = "accessibility.tap_count"
@@ -94,6 +95,15 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
    * and a call you cannot take without video is a call you may not take at all.
    */
   var allowAnswerWithoutVideo: Boolean by booleanValue(ALLOW_ANSWER_WITHOUT_VIDEO, true)
+
+  /**
+   * Whether every call is routed to the speakerphone on connect. On by default: a tablet held at
+   * arm's length for a video call is not held against an ear, and the earpiece would be inaudible.
+   *
+   * ⚠️ This also overrides a connected headset. On the target device there is none; on a device that
+   * has one, this switch is the wrong one to leave on.
+   */
+  var speakerAlwaysOn: Boolean by booleanValue(SPEAKER_ALWAYS_ON, true)
 
   /**
    * How loud a call starts, as a percentage of the device's own call volume scale. Stored as a
@@ -147,6 +157,9 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
 
   val mayAnswerWithoutVideo: Boolean
     get() = !isEnabled || allowAnswerWithoutVideo
+
+  val forcesSpeakerphone: Boolean
+    get() = isEnabled && speakerAlwaysOn
 
   /**
    * Whether to hold back popups nobody asked for -- app rating, PIN reminder and the other

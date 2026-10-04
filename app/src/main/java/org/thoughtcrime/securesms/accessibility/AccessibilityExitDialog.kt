@@ -46,7 +46,7 @@ fun AccessibilityExitDialog(
     onDismissRequest = onDismiss,
     modifier = Modifier,
     title = {
-      Text(text = "Leave Accessibility Mode")
+      Text(text = "Leave Accessibility mode")
     },
     text = {
       Column {
@@ -75,7 +75,7 @@ fun AccessibilityExitDialog(
           )
         } else {
           Text(
-            text = "This device has no Signal PIN, so there is nothing to verify. Accessibility Mode will be switched off.",
+            text = "This device has no Signal PIN, so there is nothing to verify. Accessibility mode will be switched off.",
             style = MaterialTheme.typography.bodyMedium
           )
         }

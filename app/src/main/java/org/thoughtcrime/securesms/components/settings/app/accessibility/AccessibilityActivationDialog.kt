@@ -55,14 +55,14 @@ fun AccessibilityActivationDialog(
     onDismissRequest = onDismiss,
     modifier = Modifier,
     title = {
-      Text(text = "This is Accessibility Mode")
+      Text(text = "This is Accessibility mode")
     },
     text = {
       Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         when {
           pinIsExitMethod -> {
             Text(
-              text = "Enter your Signal PIN to confirm you know it. It is the only way back out of Accessibility Mode unless you switch to the tap pattern.",
+              text = "Enter your Signal PIN to confirm you know it. It is the only way back out of Accessibility mode unless you switch to the tap pattern.",
               style = MaterialTheme.typography.bodyMedium
             )
 
@@ -93,7 +93,7 @@ fun AccessibilityActivationDialog(
 
           !hasPin -> {
             Text(
-              text = "You have no Signal PIN. The tap pattern is therefore your only way back out of Accessibility Mode. It is already set to seven taps in the top right corner within two seconds.",
+              text = "You have no Signal PIN. The tap pattern is therefore your only way back out of Accessibility mode. You can see and change it under \"How to exit Accessibility mode\".",
               style = MaterialTheme.typography.bodyMedium
             )
 
@@ -120,19 +120,23 @@ fun AccessibilityActivationDialog(
 
           else -> {
             Text(
-              text = "The tap pattern is your way back out of Accessibility Mode. You can change it under \"How to exit Accessibility Mode\".",
+              text = "The tap pattern is your way back out of Accessibility mode. You can change it under \"How to exit Accessibility mode\".",
               style = MaterialTheme.typography.bodyMedium
             )
           }
         }
 
-        Text(
-          text = "If you forget your Signal PIN there is no way to recover it. You would have to reset Signal and lose its data.",
-          style = MaterialTheme.typography.bodyMedium,
-          fontWeight = FontWeight.Medium,
-          fontStyle = FontStyle.Italic,
-          modifier = Modifier.padding(top = 16.dp)
-        )
+        // Only where the PIN is the way back out. With the tap pattern chosen it warns about a
+        // secret that has nothing to do with leaving the mode.
+        if (pinIsExitMethod) {
+          Text(
+            text = "If you forget your Signal PIN there is no way to recover it. You would have to reset Signal and lose its data.",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier.padding(top = 16.dp)
+          )
+        }
       }
     },
     dismissButton = {
@@ -145,7 +149,7 @@ fun AccessibilityActivationDialog(
         onClick = onConfirm,
         enabled = pinCheck.verified || !pinIsExitMethod
       ) {
-        Text(text = "Understood")
+        Text(text = "Got it")
       }
     }
   )

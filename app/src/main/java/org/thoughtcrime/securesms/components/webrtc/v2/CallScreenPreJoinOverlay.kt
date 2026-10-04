@@ -118,7 +118,9 @@ fun CallScreenPreJoinOverlay(
         callRecipient = callRecipient,
         callStatus = callStatus,
         onNavigationClick = onNavigationClick,
-        onCallInfoClick = onCallInfoClick
+        onCallInfoClick = onCallInfoClick,
+        // The mode carries the back button in the control strip next to "Start Video Call".
+        showNavigationIcon = !SignalStore.accessibility.simplifiesCallScreen
       )
     }
 

@@ -29,6 +29,7 @@ import org.signal.core.ui.compose.Buttons
 import org.signal.core.ui.compose.IconButtons
 import org.signal.core.ui.compose.NightPreview
 import org.signal.core.ui.compose.Previews
+import org.signal.core.ui.compose.SignalIcons
 import org.thoughtcrime.securesms.R
 import org.signal.core.ui.R as CoreUiR
 
@@ -210,6 +211,34 @@ fun CallActionButton(
     Text(
       text = text,
       style = MaterialTheme.typography.labelLarge
+    )
+  }
+}
+
+/**
+ * Back out of the lobby, as a round tonal button in the control strip. Same tokens the mode uses for
+ * going back elsewhere, so it reads as the same action in a different place.
+ */
+@Composable
+fun CallBackButton(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  val buttonSize = dimensionResource(id = R.dimen.webrtc_button_size)
+
+  IconButtons.IconButton(
+    onClick = onClick,
+    size = buttonSize,
+    modifier = modifier.size(buttonSize),
+    colors = IconButtons.iconButtonColors(
+      containerColor = MaterialTheme.colorScheme.secondaryContainer,
+      contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+    )
+  ) {
+    Icon(
+      imageVector = SignalIcons.ArrowStart.imageVector,
+      contentDescription = stringResource(id = R.string.CallScreenTopBar__go_back),
+      modifier = Modifier.size(defaultCallButtonIconSize)
     )
   }
 }

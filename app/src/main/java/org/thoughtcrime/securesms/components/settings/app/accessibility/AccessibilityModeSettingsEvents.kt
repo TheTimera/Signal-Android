@@ -11,6 +11,7 @@ sealed interface AccessibilityModeSettingsEvents {
   data class ToggleAllowMicToggle(val enabled: Boolean) : AccessibilityModeSettingsEvents
   data class ToggleAllowCameraSwitch(val enabled: Boolean) : AccessibilityModeSettingsEvents
   data class ToggleAllowAnswerWithoutVideo(val enabled: Boolean) : AccessibilityModeSettingsEvents
+  data class ToggleSpeakerAlwaysOn(val enabled: Boolean) : AccessibilityModeSettingsEvents
   data class ToggleAllowScreenShare(val enabled: Boolean) : AccessibilityModeSettingsEvents
   data class SetCallStartVolumePercent(val percent: Int) : AccessibilityModeSettingsEvents
   data object RequestActivation : AccessibilityModeSettingsEvents

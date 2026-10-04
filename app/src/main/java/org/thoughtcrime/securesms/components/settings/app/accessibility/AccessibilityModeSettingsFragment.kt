@@ -90,7 +90,7 @@ private fun AccessibilityModeSettingsContent(
   onActivated: () -> Unit
 ) {
   Scaffolds.Settings(
-    title = "Accessibility Mode",
+    title = "Accessibility mode",
     navigationContentDescription = "Go back",
     navigationIcon = SignalIcons.ArrowStart.imageVector,
     onNavigationClick = onNavigationClick
@@ -100,7 +100,7 @@ private fun AccessibilityModeSettingsContent(
     ) {
       item {
         Rows.TextRow(
-          text = "How to exit Accessibility Mode",
+          text = "How to exit Accessibility mode",
           label = if (state.hasPin) {
             "Your Signal PIN unlocks these settings. You can switch to a tap pattern instead."
           } else {
@@ -114,7 +114,7 @@ private fun AccessibilityModeSettingsContent(
         Rows.ToggleRow(
           checked = state.iconsAlwaysVisible,
           text = "Always show call controls",
-          label = "Hang up, volume, and any other buttons you allow stay on screen for the whole call. Normally they fade out and return when the screen is tapped.",
+          label = "The buttons stay on screen for the whole call. Normally they fade out and come back when the screen is tapped.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleIconsAlwaysVisible(it)) }
         )
       }
@@ -125,7 +125,7 @@ private fun AccessibilityModeSettingsContent(
 
       item {
         Text(
-          text = "The default setting is \"Video-Call Only,\" but you can allow users to toggle the camera and microphone on and off. Additionally, you can provide an option to switch between the front and rear cameras.",
+          text = "Calls are video only. Each button below adds one exception to that.",
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           modifier = Modifier
@@ -137,8 +137,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowCameraToggle,
-          text = "Camera on/off - Toggle",
-          label = "Gives the option to turn the camera off and on again.",
+          text = "Camera button",
+          label = "Adds a camera button to the call screen.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowCameraToggle(it)) }
         )
       }
@@ -146,8 +146,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowAnswerWithoutVideo,
-          text = "Answer without video - Toggle",
-          label = "Gives the option to take an incoming call with the camera off. Shown on the answering screen only.",
+          text = "Answer without video button",
+          label = "Adds a button for answering with the camera off. Shown while the phone rings.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowAnswerWithoutVideo(it)) }
         )
       }
@@ -155,8 +155,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowMicToggle,
-          text = "Microphone on/off - Toggle",
-          label = "Gives the option to turn the microphone off and on again.",
+          text = "Microphone button",
+          label = "Adds a microphone button to the call screen.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowMicToggle(it)) }
         )
       }
@@ -164,9 +164,18 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowCameraSwitch,
-          text = "Switch Cameras front/rear - Toggle",
-          label = "Gives the option to switch to the rear camera and back to front again.",
+          text = "Camera switch button",
+          label = "Adds a button for switching between the front and rear camera.",
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowCameraSwitch(it)) }
+        )
+      }
+
+      item {
+        Rows.ToggleRow(
+          checked = state.speakerAlwaysOn,
+          text = "Always use the speaker",
+          label = "Every call is put on the speakerphone as soon as it connects, incoming calls included.",
+          onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleSpeakerAlwaysOn(it)) }
         )
       }
 
@@ -184,8 +193,8 @@ private fun AccessibilityModeSettingsContent(
         item {
           Rows.ToggleRow(
             checked = state.allowScreenShare,
-            text = "Share Screen on/off - Toggle",
-            label = "Gives the option to share the screen and stop sharing again.",
+            text = "Screen sharing button",
+            label = "Adds a button for sharing the screen, and for stopping again.",
             onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowScreenShare(it)) }
           )
         }
@@ -206,7 +215,7 @@ private fun AccessibilityModeSettingsContent(
             .horizontalGutters()
             .padding(top = 16.dp, bottom = 24.dp)
         ) {
-          Text(text = if (state.enabled) "Turn off Accessibility Mode" else "Turn on Accessibility Mode")
+          Text(text = if (state.enabled) "Turn off Accessibility mode" else "Turn on Accessibility mode")
         }
       }
     }

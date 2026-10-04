@@ -74,7 +74,7 @@ private fun AccessibilityExitSettingsContent(
   onNavigationClick: () -> Unit
 ) {
   Scaffolds.Settings(
-    title = "How to exit Accessibility Mode",
+    title = "How to exit Accessibility mode",
     navigationContentDescription = "Go back",
     navigationIcon = SignalIcons.ArrowStart.imageVector,
     onNavigationClick = onNavigationClick
@@ -85,9 +85,9 @@ private fun AccessibilityExitSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.exitWithPin && state.hasPin,
-          text = "Use PIN method",
+          text = "Signal PIN",
           label = if (state.hasPin) {
-            "Your Signal PIN gets you back out of Accessibility Mode. With this off, the tap pattern below is the only way out."
+            "Your Signal PIN gets you back out of Accessibility mode. With this off, the tap pattern below is the only way out."
           } else {
             "You have no Signal PIN, so the tap pattern below is the only way out. Set up a PIN in Settings to use this."
           },
@@ -102,7 +102,7 @@ private fun AccessibilityExitSettingsContent(
 
       item {
         Text(
-          text = "Tap method",
+          text = "Tap pattern",
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onSurface,
           modifier = Modifier
@@ -113,7 +113,7 @@ private fun AccessibilityExitSettingsContent(
 
       item {
         Rows.RadioListRow(
-          text = "Select fixed position",
+          text = "Corner to tap",
           labels = CORNER_LABELS,
           values = CORNER_VALUES,
           selectedValue = state.tapCorner.name,
@@ -124,7 +124,7 @@ private fun AccessibilityExitSettingsContent(
 
       item {
         Rows.RadioListRow(
-          text = "Set number of taps required",
+          text = "Number of taps",
           labels = TAP_COUNT_VALUES,
           values = TAP_COUNT_VALUES,
           selectedValue = state.tapCount.toString(),
@@ -135,7 +135,7 @@ private fun AccessibilityExitSettingsContent(
 
       item {
         Rows.RadioListRow(
-          text = "Set detection time",
+          text = "Time limit",
           labels = TAP_WINDOW_LABELS,
           values = TAP_WINDOW_VALUES,
           selectedValue = state.tapWindowMillis.toString(),
@@ -203,7 +203,7 @@ private fun TapTargetHint(
     }
 
     Text(
-      text = "Tap the contact overview screen $tapCount times in $secondsText seconds to leave Accessibility Mode.",
+      text = "Tap the contact overview screen $tapCount times in $secondsText seconds to leave Accessibility mode.",
       style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       modifier = Modifier.padding(start = 16.dp)

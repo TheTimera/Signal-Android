@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 import org.signal.core.ui.compose.Dialogs
 import org.signal.core.ui.compose.SignalIcons
 import org.signal.core.ui.compose.statusBarsCompat
+import org.signal.core.ui.compose.systemBarsCompat
 import org.signal.core.util.EllapsedTimeFormatter
 import org.thoughtcrime.securesms.avatar.AvatarImage
 import org.thoughtcrime.securesms.keyvalue.AccessibilityTapCorner
@@ -118,10 +119,10 @@ fun AccessibilityHomeScreen(
 
   if (showTapConfirmation) {
     Dialogs.SimpleAlertDialog(
-      title = "Leave Accessibility Mode?",
-      body = "The full Signal app comes back. You can switch Accessibility Mode on again in Settings.",
-      confirm = "Yes",
-      dismiss = "No",
+      title = "Leave Accessibility mode?",
+      body = "The full Signal app comes back. You can switch Accessibility mode on again in Settings.",
+      confirm = "Leave",
+      dismiss = "Cancel",
       onConfirm = {
         showTapConfirmation = false
         onExit()
@@ -159,7 +160,7 @@ private fun EndedCallNotice(
     if (endedCall != null && (remaining ?: 0L) > 0L) {
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-          text = "Video-Call ended",
+          text = "Video call ended",
           style = MaterialTheme.typography.headlineMedium,
           color = MaterialTheme.colorScheme.error
         )
@@ -247,7 +248,7 @@ private fun ContactPicker(
       ) {
         Icon(
           imageVector = SignalIcons.MoreVertical.imageVector,
-          contentDescription = "Menu",
+          contentDescription = "More options",
           tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
       }
@@ -256,14 +257,20 @@ private fun ContactPicker(
         tapCount = exitTapCount,
         tapWindowMillis = exitTapWindowMillis,
         onCompleted = onTapPatternCompleted,
-        modifier = Modifier.align(
-          when (exitCorner) {
-            AccessibilityTapCorner.TOP_LEFT -> Alignment.TopStart
-            AccessibilityTapCorner.TOP_RIGHT -> Alignment.TopEnd
-            AccessibilityTapCorner.BOTTOM_LEFT -> Alignment.BottomStart
-            AccessibilityTapCorner.BOTTOM_RIGHT -> Alignment.BottomEnd
-          }
-        )
+        modifier = Modifier
+          .align(
+            when (exitCorner) {
+              AccessibilityTapCorner.TOP_LEFT -> Alignment.TopStart
+              AccessibilityTapCorner.TOP_RIGHT -> Alignment.TopEnd
+              AccessibilityTapCorner.BOTTOM_LEFT -> Alignment.BottomStart
+              AccessibilityTapCorner.BOTTOM_RIGHT -> Alignment.BottomEnd
+            }
+          )
+          // Inside the system bars, not under them. Measured on 4.10.2026: the bottom corners were
+          // 84x36 instead of 84x84, because the lower 48.dp sat beneath the navigation bar -- three
+          // taps 4.dp above the remaining strip did nothing. The top corners measured full size but
+          // their upper 24.dp lay under the status bar, where a tap pulls down the shade instead.
+          .windowInsetsPadding(WindowInsets.systemBarsCompat)
       )
     }
   }

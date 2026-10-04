@@ -40,9 +40,13 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import org.signal.core.ui.compose.IconButtons
 import org.thoughtcrime.securesms.R
+import org.thoughtcrime.securesms.events.CallParticipant
 import org.signal.core.ui.R as CoreUiR
 
 private const val POLL_MILLIS = 1000L
+
+/** Fixed room for the microphone level, which comes and goes on its own. */
+private val MIC_SLOT_SIZE = 52.dp
 
 /**
  * Volume up and down for the call itself, as a pair at the screen edge, with the current level
@@ -61,7 +65,10 @@ private const val POLL_MILLIS = 1000L
  *    button reads as broken; the bar next to it already says why nothing moves.
  */
 @Composable
-fun CallVolumeControls(modifier: Modifier = Modifier) {
+fun CallVolumeControls(
+  localParticipant: CallParticipant? = null,
+  modifier: Modifier = Modifier
+) {
   val context = LocalContext.current
   val audioManager = remember { ContextCompat.getSystemService(context, AudioManager::class.java) } ?: return
 
@@ -91,12 +98,8 @@ fun CallVolumeControls(modifier: Modifier = Modifier) {
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
   ) {
-    VolumeButton(
-      imageVector = ImageVector.vectorResource(id = R.drawable.symbol_plus_circle_24),
-      contentDescription = stringResource(R.string.CallVolume__louder),
-      onClick = { setVolume(volume + 1) }
-    )
-
+    // The level sits above both buttons and keeps that place whether or not the buttons are there,
+    // so the eye does not have to find it again when they come and go.
     VolumeLevel(
       volume = volume,
       minVolume = minVolume,
@@ -104,10 +107,33 @@ fun CallVolumeControls(modifier: Modifier = Modifier) {
     )
 
     VolumeButton(
+      imageVector = ImageVector.vectorResource(id = R.drawable.symbol_plus_circle_24),
+      contentDescription = stringResource(R.string.CallVolume__louder),
+      onClick = { setVolume(volume + 1) }
+    )
+
+    VolumeButton(
       imageVector = ImageVector.vectorResource(id = R.drawable.symbol_minus_circle_24),
       contentDescription = stringResource(R.string.CallVolume__quieter),
       onClick = { setVolume(volume - 1) }
     )
+
+    // The microphone level belongs next to the thing it is read against -- how loud the other side
+    // is -- not in the opposite corner, which is where Signal puts it.
+    //
+    // Its own composable shows nothing while the mic is live and silent, so the slot is held open:
+    // otherwise the column shrinks, and since it is centred vertically, the whole group jumps.
+    Box(
+      contentAlignment = Alignment.Center,
+      modifier = Modifier.size(MIC_SLOT_SIZE)
+    ) {
+      if (localParticipant != null) {
+        ParticipantAudioIndicator(
+          participant = localParticipant,
+          selfPipMode = SelfPipMode.NOT_SELF_PIP
+        )
+      }
+    }
   }
 }
 

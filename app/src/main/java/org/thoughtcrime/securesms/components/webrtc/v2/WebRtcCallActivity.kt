@@ -1026,7 +1026,22 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
     // otherwise undo whatever the user set by hand while talking.
     if (justConnected) {
       applyAccessibilityStartVolume()
+      applyAccessibilityAudioRoute()
     }
+  }
+
+  /**
+   * Puts the call on the speakerphone when the caregiver asked for it. Routed through Signal's own
+   * selectAudioDevice, the same call its audio button makes, rather than touching the AudioManager
+   * next to it -- two routes to the same setting disagree sooner or later.
+   */
+  private fun applyAccessibilityAudioRoute() {
+    if (!SignalStore.accessibility.forcesSpeakerphone) {
+      return
+    }
+
+    AppDependencies.signalCallManager.selectAudioDevice(ChosenAudioDeviceIdentifier(SignalAudioManager.AudioDevice.SPEAKER_PHONE))
+    Log.i(TAG, "Accessibility Mode: call routed to the speakerphone.")
   }
 
   /**

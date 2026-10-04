@@ -486,7 +486,8 @@ fun CallScreen(
             }
           },
           audioIndicatorSlot = {
-            if (callParticipantsPagerState.callParticipants.size == 1) {
+            // In the mode this sits with the volume controls on the right instead.
+            if (!simplified && callParticipantsPagerState.callParticipants.size == 1) {
               val participant = callParticipantsPagerState.callParticipants.first()
               ParticipantAudioIndicator(
                 participant = participant,
@@ -544,6 +545,7 @@ fun CallScreen(
           modifier = Modifier.align(Alignment.CenterEnd)
         ) {
           CallVolumeControls(
+            localParticipant = callParticipantsPagerState.callParticipants.firstOrNull(),
             modifier = Modifier
               .windowInsetsPadding(WindowInsets.navigationBarsCompat)
               .padding(end = 16.dp)

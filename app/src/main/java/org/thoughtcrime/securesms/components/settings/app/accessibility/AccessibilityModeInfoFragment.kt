@@ -36,7 +36,7 @@ class AccessibilityModeInfoFragment : ComposeFragment() {
 }
 
 private val PARAGRAPHS = listOf(
-  "Accessibility Mode is designed for people with disabilities or special needs, particularly elderly users who may feel overwhelmed by Signal's many features. It simplifies the app by offering only essential functions, starting with video calling, and lets you add more functionality as the person grows comfortable with it.",
+  "Accessibility mode is designed for people with disabilities or special needs, particularly elderly users who may feel overwhelmed by Signal's many features. It simplifies the app by offering only essential functions, starting with video calling, and lets you add more functionality as the person grows comfortable with it.",
   "Setting it up should be done by a caregiver, such as a family member, who also sets up the account on the device.",
   "To prevent unwanted changes to settings or deleted contacts, the settings are locked. Whoever sets up the device chooses the lock: the Signal PIN or a tap pattern.",
   "Choosing the Signal PIN means that if the PIN is forgotten, the account is locked for good. A Signal PIN cannot be recovered — the account would have to be deleted and set up again. The PIN is the more secure of the two.",
@@ -44,8 +44,8 @@ private val PARAGRAPHS = listOf(
 )
 
 private val TIPS = listOf(
-  "Consider running Signal in Accessibility Mode inside a kiosk app such as FreeKiosk, so no other apps distract the person using the device.",
-  "Accessibility Mode suits a tablet better than a phone, simply because of the button and screen size during a video call."
+  "Consider running Signal in Accessibility mode inside a kiosk app such as FreeKiosk, so no other apps distract the person using the device.",
+  "Accessibility mode suits a tablet better than a phone, simply because of the button and screen size during a video call."
 )
 
 @Composable
@@ -53,7 +53,7 @@ private fun AccessibilityModeInfoContent(
   onNavigationClick: () -> Unit
 ) {
   Scaffolds.Settings(
-    title = "What is Accessibility Mode",
+    title = "About Accessibility mode",
     navigationContentDescription = "Go back",
     navigationIcon = SignalIcons.ArrowStart.imageVector,
     onNavigationClick = onNavigationClick
@@ -73,7 +73,7 @@ private fun AccessibilityModeInfoContent(
       }
 
       Text(
-        text = "Important: do not set the time limit too short, or it may not be possible to tap quickly enough.",
+        text = "Do not set the time too short, or the taps may not be possible to do quickly enough.",
         style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.Medium,
         modifier = Modifier.padding(bottom = 24.dp)
