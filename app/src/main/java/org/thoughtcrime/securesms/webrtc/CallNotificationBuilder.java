@@ -243,6 +243,14 @@ public class CallNotificationBuilder {
   }
 
   private static @NonNull String getNotificationChannel(int type) {
+    // Accessibility Mode with the app in front: the call screen is already up, so the heads-up only
+    // repeats it. The quiet channel is the only way to stop it -- from API 26 on, the channel's
+    // importance decides whether a notification pops over the screen, and setPriority() is ignored.
+    // That is why lowering the priority alone changed nothing.
+    if (type == TYPE_INCOMING_RINGING && SignalStore.accessibility().isEnabled() && AppForegroundObserver.isForegrounded()) {
+      return NotificationChannels.getInstance().CALL_STATUS;
+    }
+
     if (type == TYPE_INCOMING_RINGING || AndroidTelecomUtil.hasActiveController()) {
       return NotificationChannels.getInstance().CALLS;
     } else {

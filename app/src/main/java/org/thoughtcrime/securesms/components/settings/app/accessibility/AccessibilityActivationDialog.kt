@@ -16,11 +16,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -51,6 +54,18 @@ fun AccessibilityActivationDialog(
   var pin by remember { mutableStateOf("") }
   val pinCheck = rememberPinCheck(pin)
 
+  // Once the PIN is right there is nothing left to type, and the keyboard would sit on top of the
+  // button that is now enabled.
+  val keyboard = LocalSoftwareKeyboardController.current
+  val focusManager = LocalFocusManager.current
+
+  LaunchedEffect(pinCheck.verified) {
+    if (pinCheck.verified) {
+      focusManager.clearFocus(force = true)
+      keyboard?.hide()
+    }
+  }
+
   Dialogs.BaseAlertDialog(
     onDismissRequest = onDismiss,
     modifier = Modifier,
@@ -71,6 +86,9 @@ fun AccessibilityActivationDialog(
               onValueChange = { pin = it },
               label = { Text(text = "Signal PIN") },
               singleLine = true,
+              // Nothing left to type once it is right, and a locked field lets the keyboard close
+              // instead of covering the button that just became available.
+              enabled = !pinCheck.verified,
               visualTransformation = PasswordVisualTransformation(),
               keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
               isError = pinCheck.failed,

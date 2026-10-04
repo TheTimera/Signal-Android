@@ -979,15 +979,6 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
       startActivity(CalleeMustAcceptMessageRequestActivity.createIntent(this, recipient.id))
     }
 
-    if (SignalStore.accessibility.simplifiesCallScreen) {
-      // Signal keeps this screen around after a call and falls back to the lobby while it winds
-      // down -- measured on 3.10.2026: "Start Video Call" was back on screen 11 seconds after
-      // hanging up. In this mode that is an invitation to redial by accident, and it hides the
-      // "call ended" notice on the home screen behind it.
-      finish()
-      return
-    }
-
     delayedFinish()
   }
 
@@ -1326,7 +1317,18 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
     MessageSender.onMessageSent()
   }
 
+  /**
+   * Accessibility Mode closes at once instead of waiting out the delay. The wait exists so Signal can
+   * show a closing status, but with no call left to describe the screen falls back to its pre-join
+   * layout -- the lobby, with "Start Video Call" on it. Measured after hanging up, and again after
+   * declining, which reaches finish by its own path.
+   */
   private fun delayedFinish(delayMillis: Long = STANDARD_DELAY_FINISH) {
+    if (SignalStore.accessibility.simplifiesCallScreen) {
+      finish()
+      return
+    }
+
     rootView().postDelayed(this::finish, delayMillis)
   }
 

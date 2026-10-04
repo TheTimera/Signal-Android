@@ -133,7 +133,7 @@ fun AccessibilityHomeScreen(
 }
 
 /**
- * "Video-Call ended" and how long it lasted, for [ENDED_CALL_NOTICE_MILLIS] after hanging up.
+ * "Call ended" and how long it lasted, for [ENDED_CALL_NOTICE_MILLIS] after hanging up.
  *
  * Holds its height even when there is nothing to say. The alternative -- appearing and disappearing
  * above the tiles -- would move the tiles twice per call, and this screen's whole point is that the
@@ -160,7 +160,9 @@ private fun EndedCallNotice(
     if (endedCall != null && (remaining ?: 0L) > 0L) {
       Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-          text = "Video call ended",
+          // "Call ended" rather than "Video call ended": an incoming call can be voice only, and
+          // the notice does not know which it was.
+          text = "Call ended",
           style = MaterialTheme.typography.headlineMedium,
           color = MaterialTheme.colorScheme.error
         )
