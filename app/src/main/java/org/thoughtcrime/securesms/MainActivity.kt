@@ -549,8 +549,8 @@ class MainActivity :
             state = accessibilityHomeState,
             pinExitEnabled = SignalStore.accessibility.exitWithPin && SignalStore.svr.hasPin(),
             exitCorner = SignalStore.accessibility.tapCorner,
-            exitTapCount = SignalStore.accessibility.tapCount,
-            exitTapWindowMillis = SignalStore.accessibility.tapWindowMillis,
+            exitTapCount = SignalStore.accessibility.effectiveTapCount,
+            exitTapWindowMillis = SignalStore.accessibility.effectiveTapWindowMillis,
             onCallClick = { startAccessibilityVideoCall(this@MainActivity, it) },
             onExit = {
               SignalStore.accessibility.isEnabled = false

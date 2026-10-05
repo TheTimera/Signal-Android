@@ -27,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,6 +42,7 @@ import kotlinx.coroutines.delay
 import org.signal.core.ui.compose.IconButtons
 import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.events.CallParticipant
+import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.signal.core.ui.R as CoreUiR
 
 private const val POLL_MILLIS = 1000L
@@ -67,6 +69,7 @@ private val MIC_SLOT_SIZE = 52.dp
 @Composable
 fun CallVolumeControls(
   localParticipant: CallParticipant? = null,
+  showVolume: Boolean = true,
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -98,40 +101,56 @@ fun CallVolumeControls(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
   ) {
-    // The level sits above both buttons and keeps that place whether or not the buttons are there,
-    // so the eye does not have to find it again when they come and go.
-    VolumeLevel(
-      volume = volume,
-      minVolume = minVolume,
-      maxVolume = maxVolume
-    )
+    // ⚠️ Vor dem Anruf wird dieser Teil nur UNSICHTBAR geschaltet, nicht weggelassen. Er hält dann
+    //    seinen Platz, und damit steht die Mikrofonanzeige darunter in der Lobby pixelgenau dort,
+    //    wo sie auch im Gespräch steht -- genau das war die Anforderung. Würde man die Knöpfe
+    //    weglassen, rutschte die Anzeige nach oben und wäre vor und während des Anrufs an zwei
+    //    verschiedenen Stellen.
+    val sichtbar = Modifier.alpha(if (showVolume) 1f else 0f)
 
-    VolumeButton(
-      imageVector = ImageVector.vectorResource(id = R.drawable.symbol_plus_circle_24),
-      contentDescription = stringResource(R.string.CallVolume__louder),
-      onClick = { setVolume(volume + 1) }
-    )
+    Box(modifier = sichtbar) {
+      VolumeLevel(
+        volume = volume,
+        minVolume = minVolume,
+        maxVolume = maxVolume
+      )
+    }
 
-    VolumeButton(
-      imageVector = ImageVector.vectorResource(id = R.drawable.symbol_minus_circle_24),
-      contentDescription = stringResource(R.string.CallVolume__quieter),
-      onClick = { setVolume(volume - 1) }
-    )
+    Box(modifier = sichtbar) {
+      VolumeButton(
+        imageVector = ImageVector.vectorResource(id = R.drawable.symbol_plus_circle_24),
+        contentDescription = if (showVolume) stringResource(R.string.Accessibility__volume_up) else "",
+        // Unsichtbar heißt auch unbedienbar: alpha allein nimmt die Berührfläche nicht weg.
+        onClick = { if (showVolume) setVolume(volume + 1) }
+      )
+    }
+
+    Box(modifier = sichtbar) {
+      VolumeButton(
+        imageVector = ImageVector.vectorResource(id = R.drawable.accessibility_minus_circle_24),
+        contentDescription = if (showVolume) stringResource(R.string.Accessibility__volume_down) else "",
+        onClick = { if (showVolume) setVolume(volume - 1) }
+      )
+    }
 
     // The microphone level belongs next to the thing it is read against -- how loud the other side
     // is -- not in the opposite corner, which is where Signal puts it.
     //
     // Its own composable shows nothing while the mic is live and silent, so the slot is held open:
     // otherwise the column shrinks, and since it is centred vertically, the whole group jumps.
-    Box(
-      contentAlignment = Alignment.Center,
-      modifier = Modifier.size(MIC_SLOT_SIZE)
-    ) {
-      if (localParticipant != null) {
-        ParticipantAudioIndicator(
-          participant = localParticipant,
-          selfPipMode = SelfPipMode.NOT_SELF_PIP
-        )
+    // Abschaltbar über "Microphone level". Dann entfällt auch der Platzhalter -- ein leerer Slot
+    // für etwas, das nie erscheint, verschöbe die Knöpfe ohne Gegenwert.
+    if (SignalStore.accessibility.showsMicLevel) {
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.size(MIC_SLOT_SIZE)
+      ) {
+        if (localParticipant != null) {
+          ParticipantAudioIndicator(
+            participant = localParticipant,
+            selfPipMode = SelfPipMode.NOT_SELF_PIP
+          )
+        }
       }
     }
   }

@@ -7,6 +7,7 @@ package org.thoughtcrime.securesms.accessibility
 
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
+import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.recipients.RecipientId
 import org.thoughtcrime.securesms.util.CommunicationActions
@@ -20,6 +21,6 @@ fun startAccessibilityVideoCall(activity: FragmentActivity, recipientId: Recipie
   CommunicationActions.startVideoCall(activity, Recipient.resolved(recipientId)) {
     // A plain toast rather than the usual snackbar: this screen has no scaffold to host one, and
     // silence would leave the person tapping a button that appears to do nothing.
-    Toast.makeText(activity, "You are already in a call.", Toast.LENGTH_SHORT).show()
+    Toast.makeText(activity, activity.getString(R.string.Accessibility__you_are_already_in_a_call), Toast.LENGTH_SHORT).show()
   }
 }

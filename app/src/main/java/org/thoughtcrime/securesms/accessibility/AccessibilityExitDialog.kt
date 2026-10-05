@@ -22,10 +22,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.signal.core.ui.compose.Dialogs
+import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.keyvalue.SignalStore
 
 /**
@@ -61,20 +63,20 @@ fun AccessibilityExitDialog(
     onDismissRequest = onDismiss,
     modifier = Modifier,
     title = {
-      Text(text = "Leave Accessibility mode")
+      Text(text = stringResource(R.string.Accessibility__leave_accessibility_mode))
     },
     text = {
       Column {
         if (hasPin) {
           Text(
-            text = "Enter your Signal PIN to switch back to the full app.",
+            text = stringResource(R.string.Accessibility__enter_pin_to_switch_back),
             style = MaterialTheme.typography.bodyMedium
           )
 
           OutlinedTextField(
             value = pin,
             onValueChange = { pin = it },
-            label = { Text(text = "Signal PIN") },
+            label = { Text(text = stringResource(R.string.Accessibility__signal_pin)) },
             singleLine = true,
             // Nothing left to type once it is right, and a locked field lets the keyboard close
             // instead of covering the button that just became available.
@@ -84,7 +86,7 @@ fun AccessibilityExitDialog(
             isError = pinCheck.failed,
             supportingText = {
               if (pinCheck.failed) {
-                Text(text = "That is not your Signal PIN.")
+                Text(text = stringResource(R.string.Accessibility__that_is_not_your_pin))
               }
             },
             modifier = Modifier
@@ -93,7 +95,7 @@ fun AccessibilityExitDialog(
           )
         } else {
           Text(
-            text = "This device has no Signal PIN, so there is nothing to verify. Accessibility mode will be switched off.",
+            text = stringResource(R.string.Accessibility__no_pin_nothing_to_verify),
             style = MaterialTheme.typography.bodyMedium
           )
         }
@@ -101,7 +103,7 @@ fun AccessibilityExitDialog(
     },
     dismissButton = {
       TextButton(onClick = onDismiss) {
-        Text(text = "Cancel")
+        Text(text = stringResource(R.string.Accessibility__cancel))
       }
     },
     confirmButton = {
@@ -109,7 +111,7 @@ fun AccessibilityExitDialog(
         onClick = onLeave,
         enabled = !hasPin || pinCheck.verified
       ) {
-        Text(text = "Leave")
+        Text(text = stringResource(R.string.Accessibility__leave))
       }
     }
   )

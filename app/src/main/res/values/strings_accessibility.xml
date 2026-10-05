@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Texte des Accessibility mode.
+
+  ⚠️ BEWUSST EINE EIGENE DATEI, nicht strings.xml. Signals strings.xml wird aus Transifex
+  erzeugt und bei jedem Rebase ueberschrieben; alles, was dieser Fork dort einfuegt, waere
+  spaetestens beim naechsten Versionssprung weg oder im Konflikt. Android fasst alle Dateien
+  unter values/ ohnehin zusammen, der Zugriff bleibt R.string.…
+
+  ⚠️ AUS DEMSELBEN GRUND WERDEN HIER KEINE SIGNAL-SCHLUESSEL MITBENUTZT, auch wenn es sie
+  gibt (AttachmentManager__cancel = "Cancel", LeaveGroupDialog_leave = "Leave" …). Beim Rebase
+  auf 8.30.1 ist der Build daran zerbrochen, dass Signal symbol_minus_circle_24 entfernt hatte —
+  ein entliehener Schluessel ist dieselbe Wette noch einmal. Lieber vier Woerter doppelt als
+  ein Modus, der nach dem naechsten Upstream-Merge nicht mehr uebersetzt ist.
+
+  Deutsche Fassung: app/src/main/res/values-de/strings_accessibility.xml
+-->
+<resources>
+
+  <!-- Kachelansicht -->
+  <string name="Accessibility__start_video_call">Start Video Call</string>
+  <string name="Accessibility__end_video_call">End Video Call</string>
+  <string name="Accessibility__volume_up">Turn the volume up</string>
+  <string name="Accessibility__volume_down">Turn the volume down</string>
+  <string name="Accessibility__more_options">More options</string>
+  <string name="Accessibility__call_ended">Call ended</string>
+  <string name="Accessibility__no_duration">00:00</string>
+  <string name="Accessibility__no_contacts_yet">No contacts yet. Whoever set up this device needs to start a chat first.</string>
+  <string name="Accessibility__you_are_already_in_a_call">You are already in a call.</string>
+
+  <!-- Verlassen: Dialog mit PIN, und die Tipp-Bestaetigung -->
+  <string name="Accessibility__leave_accessibility_mode">Leave Accessibility mode</string>
+  <string name="Accessibility__leave_accessibility_mode_question">Leave Accessibility mode?</string>
+  <string name="Accessibility__leave_brings_back_full_app">The full Signal app comes back. You can switch Accessibility mode on again in Settings.</string>
+  <string name="Accessibility__enter_pin_to_switch_back">Enter your Signal PIN to switch back to the full app.</string>
+  <string name="Accessibility__no_pin_nothing_to_verify">This device has no Signal PIN, so there is nothing to verify. Accessibility mode will be switched off.</string>
+  <string name="Accessibility__that_is_not_your_pin">That is not your Signal PIN.</string>
+  <string name="Accessibility__signal_pin">Signal PIN</string>
+  <string name="Accessibility__cancel">Cancel</string>
+  <string name="Accessibility__leave">Leave</string>
+  <string name="Accessibility__verify">Verify</string>
+  <string name="Accessibility__go_back">Go back</string>
+
+  <!-- Dialog beim Einschalten -->
+  <string name="Accessibility__this_is_accessibility_mode">This is Accessibility mode</string>
+  <string name="Accessibility__enter_pin_to_confirm">Enter your Signal PIN to confirm you know it. It is the only way back out of Accessibility mode unless you switch to the tap pattern.</string>
+  <string name="Accessibility__forgotten_pin_warning">If you forget your Signal PIN there is no way to recover it. You would have to reset Signal and lose its data.</string>
+  <string name="Accessibility__no_pin_tap_pattern_only">You have no Signal PIN. The tap pattern is therefore your only way back out of Accessibility mode. You can see and change it under \"How to exit Accessibility mode\".</string>
+  <string name="Accessibility__tap_pattern_is_your_way_out">The tap pattern is your way back out of Accessibility mode. You can change it under \"How to exit Accessibility mode\".</string>
+  <string name="Accessibility__change_the_tap_pattern">Change the tap pattern</string>
+  <string name="Accessibility__or_create_a_pin">You can also create a Signal PIN and use the PIN method instead.</string>
+  <string name="Accessibility__create_a_signal_pin">Create a Signal PIN</string>
+  <string name="Accessibility__need_more_information">Need more information?</string>
+  <string name="Accessibility__got_it">Got it</string>
+
+  <!-- Einstellungsseite -->
+  <string name="Accessibility__accessibility_mode">Accessibility mode</string>
+  <string name="Accessibility__how_to_exit">How to exit Accessibility mode</string>
+  <string name="Accessibility__pin_unlocks_these_settings">Your Signal PIN unlocks these settings. You can switch to a tap pattern instead.</string>
+  <string name="Accessibility__no_pin_tap_pattern_used">You have no Signal PIN, so a tap pattern will be used to unlock these settings.</string>
+  <string name="Accessibility__always_show_call_controls">Always show call controls</string>
+  <string name="Accessibility__always_show_call_controls_label">The buttons stay on screen for the whole call. Normally they fade out and come back when the screen is tapped.</string>
+  <string name="Accessibility__video_only_header">Calls are video only. Each button below adds one exception to that.</string>
+  <string name="Accessibility__camera_button">Camera button</string>
+  <string name="Accessibility__camera_button_label">Adds a camera button to the call screen.</string>
+  <string name="Accessibility__answer_without_video_button">Answer without video button</string>
+  <string name="Accessibility__answer_without_video_button_label">Adds a button for answering with the camera off. Shown while the phone rings.</string>
+  <string name="Accessibility__microphone_button">Microphone button</string>
+  <string name="Accessibility__microphone_button_label">Adds a microphone button to the call screen.</string>
+  <string name="Accessibility__camera_switch_button">Camera switch button</string>
+  <string name="Accessibility__camera_switch_button_label">Adds a button for switching between the front and rear camera.</string>
+  <string name="Accessibility__microphone_level">Microphone level</string>
+  <string name="Accessibility__microphone_level_label">Shows how loud you are while you speak, below the volume buttons. Turn it off for a plainer call screen.</string>
+  <string name="Accessibility__always_use_the_speaker">Always use the speaker</string>
+  <string name="Accessibility__always_use_the_speaker_label">Every call is put on the speakerphone as soon as it connects, incoming calls included.</string>
+  <string name="Accessibility__volume_at_the_start_of_a_call">Volume at the start of a call</string>
+  <string name="Accessibility__screen_sharing_button">Screen sharing button</string>
+  <string name="Accessibility__screen_sharing_button_label">Adds a button for sharing the screen, and for stopping again.</string>
+  <string name="Accessibility__turn_on_accessibility_mode">Turn on Accessibility mode</string>
+  <string name="Accessibility__turn_off_accessibility_mode">Turn off Accessibility mode</string>
+  <!-- %1$d ist die Prozentzahl; %% ist ein einzelnes Prozentzeichen -->
+  <string name="Accessibility__percent">%1$d %%</string>
+
+  <!-- Ausstiegsseite -->
+  <string name="Accessibility__pin_gets_you_out">Your Signal PIN gets you back out of Accessibility mode. With this off, the tap pattern below is the only way out.</string>
+  <string name="Accessibility__no_pin_tap_pattern_only_way">You have no Signal PIN, so the tap pattern below is the only way out. Set up a PIN in Settings to use this.</string>
+  <string name="Accessibility__tap_pattern">Tap pattern</string>
+  <string name="Accessibility__tap_pattern_warning">Choose a pattern you can carry out every time. Only combinations that are quick enough to tap are offered, because with the Signal PIN switched off this pattern is the only way back into these settings.</string>
+  <string name="Accessibility__corner_to_tap">Corner to tap</string>
+  <string name="Accessibility__number_of_taps">Number of taps</string>
+  <string name="Accessibility__time_limit">Time limit</string>
+  <string name="Accessibility__top_left_corner">Top left corner</string>
+  <string name="Accessibility__top_right_corner">Top right corner</string>
+  <string name="Accessibility__bottom_left_corner">Bottom left corner</string>
+  <string name="Accessibility__bottom_right_corner">Bottom right corner</string>
+  <!-- %1$s ist die Sekundenzahl -->
+  <string name="Accessibility__seconds">%1$s seconds</string>
+  <string name="Accessibility__one_second">1 second</string>
+  <!-- %1$d Anzahl Tipps, %2$s Sekunden -->
+  <string name="Accessibility__tap_hint">Tap the contact overview screen %1$d times in %2$s seconds to leave Accessibility mode.</string>
+
+  <!-- Infoseite -->
+  <string name="Accessibility__about_accessibility_mode">About Accessibility mode</string>
+  <string name="Accessibility__tips">Tips</string>
+  <string name="Accessibility__info_what_it_is">Accessibility mode is designed for people with disabilities or special needs, particularly elderly users who may feel overwhelmed by Signal\'s many features. It simplifies the app by offering only essential functions, starting with video calling, and lets you add more functionality as the person grows comfortable with it.</string>
+  <string name="Accessibility__info_who_sets_it_up">Setting it up should be done by a caregiver, such as a family member, who also sets up the account on the device.</string>
+  <string name="Accessibility__info_why_locked">To prevent unwanted changes to settings or deleted contacts, the settings are locked. Whoever sets up the device chooses the lock: the Signal PIN or a tap pattern.</string>
+  <string name="Accessibility__info_pin_risk">Choosing the Signal PIN means that if the PIN is forgotten, the account is locked for good. A Signal PIN cannot be recovered — the account would have to be deleted and set up again. The PIN is the more secure of the two.</string>
+  <string name="Accessibility__info_tap_pattern">The tap pattern is the alternative. By default, whoever wants to reach the settings taps the top right corner of the screen seven times within two seconds. The corner, the number of taps and the time limit can all be changed. This method makes being locked out far less likely.</string>
+  <string name="Accessibility__info_tip_kiosk">Consider running Signal in Accessibility mode inside a kiosk app such as FreeKiosk, so no other apps distract the person using the device.</string>
+  <string name="Accessibility__info_tip_tablet">Accessibility mode suits a tablet better than a phone, simply because of the button and screen size during a video call.</string>
+  <string name="Accessibility__info_tip_time_limit">Do not set the time too short, or the taps may not be possible to do quickly enough.</string>
+
+</resources>

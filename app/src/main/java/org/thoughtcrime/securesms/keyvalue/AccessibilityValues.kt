@@ -61,6 +61,7 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     const val ALLOW_SCREEN_SHARE = "accessibility.allow_screen_share"
     const val ALLOW_ANSWER_WITHOUT_VIDEO = "accessibility.allow_answer_without_video"
     const val SPEAKER_ALWAYS_ON = "accessibility.speaker_always_on"
+    const val SHOW_MIC_LEVEL = "accessibility.show_mic_level"
     const val CALL_START_VOLUME_PERCENT = "accessibility.call_start_volume_percent"
     const val EXIT_WITH_PIN = "accessibility.exit_with_pin"
     const val TAP_COUNT = "accessibility.tap_count"
@@ -75,6 +76,35 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     const val MAX_TAP_WINDOW_MILLIS = 10000
     const val MIN_TAP_COUNT = 3
     const val MAX_TAP_COUNT = 15
+
+    /**
+     * Fastest tapping that counts as doable by hand. Bounding each value on its own is not enough:
+     * ten taps and a one second limit are both individually fine and together impossible, and with
+     * the Signal PIN switched off that combination is a permanent lockout -- the app's own info
+     * page can then only offer resetting Signal. So the pair is bounded, in one place, and the
+     * settings list offers nothing that fails [isTapPatternReachable].
+     *
+     * Four per second rather than a stricter figure because the shipped default is seven taps in
+     * two seconds, or 3.5 per second, and that default is in daily use. The gesture is also made
+     * by whoever maintains the device, not by the person the mode is set up for.
+     */
+    const val MAX_TAPS_PER_SECOND = 4
+
+    fun isTapPatternReachable(count: Int, windowMillis: Int): Boolean {
+      return count * 1000 <= windowMillis * MAX_TAPS_PER_SECOND
+    }
+
+    /** Shortest window in which [count] taps are still doable, rounded up to whole seconds. */
+    fun minTapWindowMillisFor(count: Int): Int {
+      val needed = ((count + MAX_TAPS_PER_SECOND - 1) / MAX_TAPS_PER_SECOND) * 1000
+      return needed.coerceIn(MIN_TAP_WINDOW_MILLIS, MAX_TAP_WINDOW_MILLIS)
+    }
+
+    /** Most taps that are still doable within [windowMillis]. */
+    fun maxTapCountFor(windowMillis: Int): Int {
+      val possible = (windowMillis / 1000) * MAX_TAPS_PER_SECOND
+      return possible.coerceIn(MIN_TAP_COUNT, MAX_TAP_COUNT)
+    }
   }
 
   var isEnabled: Boolean by booleanValue(ENABLED, false)
@@ -104,6 +134,8 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
    * has one, this switch is the wrong one to leave on.
    */
   var speakerAlwaysOn: Boolean by booleanValue(SPEAKER_ALWAYS_ON, true)
+
+  var showMicLevel: Boolean by booleanValue(SHOW_MIC_LEVEL, true)
 
   /**
    * How loud a call starts, as a percentage of the device's own call volume scale. Stored as a
@@ -162,6 +194,13 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     get() = isEnabled && speakerAlwaysOn
 
   /**
+   * Whether the microphone level is drawn at all. Only asked inside the mode -- outside it Signal
+   * draws its own indicators, which this fork does not touch.
+   */
+  val showsMicLevel: Boolean
+    get() = !isEnabled || showMicLevel
+
+  /**
    * Whether to hold back popups nobody asked for -- app rating, PIN reminder and the other
    * megaphones, relink and restore sheets, battery saver and debug log prompts. The mode's screen
    * fills the window and offers no way to dismiss a dialog, so one landing on top of it strands the
@@ -187,6 +226,20 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
   var tapWindowMillis: Int by integerValue(TAP_WINDOW_MILLIS, 2000)
 
   var tapCorner: AccessibilityTapCorner by enumValue(TAP_CORNER, AccessibilityTapCorner.TOP_RIGHT, AccessibilityTapCorner.Serializer)
+
+  /**
+   * What the gesture is actually measured against. The settings screen also corrects an impossible
+   * pair when it loads, but the gesture must not depend on anyone having opened that screen: these
+   * two are read on every start of the mode, and a pair stored by an earlier build would otherwise
+   * stay in force -- as a way out that cannot be performed.
+   */
+  val effectiveTapWindowMillis: Int
+    get() = tapWindowMillis
+      .coerceIn(MIN_TAP_WINDOW_MILLIS, MAX_TAP_WINDOW_MILLIS)
+      .coerceAtLeast(minTapWindowMillisFor(tapCount.coerceIn(MIN_TAP_COUNT, MAX_TAP_COUNT)))
+
+  val effectiveTapCount: Int
+    get() = tapCount.coerceIn(MIN_TAP_COUNT, MAX_TAP_COUNT)
 
   public override fun onFirstEverAppLaunch() = Unit
 

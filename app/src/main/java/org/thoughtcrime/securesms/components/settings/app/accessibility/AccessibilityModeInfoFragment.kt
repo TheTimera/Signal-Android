@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.fragment.findNavController
@@ -20,9 +21,10 @@ import org.signal.core.ui.compose.ComposeFragment
 import org.signal.core.ui.compose.Scaffolds
 import org.signal.core.ui.compose.SignalIcons
 import org.signal.core.ui.compose.horizontalGutters
+import org.thoughtcrime.securesms.R
 
 /**
- * The explanatory screen behind "Need more information?" (design screen 143). Content is the
+ * The explanatory screen behind stringResource(R.string.Accessibility__need_more_information) (design screen 143). Content is the
  * designer's own text with the grammar tidied up.
  */
 class AccessibilityModeInfoFragment : ComposeFragment() {
@@ -53,8 +55,8 @@ private fun AccessibilityModeInfoContent(
   onNavigationClick: () -> Unit
 ) {
   Scaffolds.Settings(
-    title = "About Accessibility mode",
-    navigationContentDescription = "Go back",
+    title = stringResource(R.string.Accessibility__about_accessibility_mode),
+    navigationContentDescription = stringResource(R.string.Accessibility__go_back),
     navigationIcon = SignalIcons.ArrowStart.imageVector,
     onNavigationClick = onNavigationClick
   ) { contentPadding ->
@@ -73,14 +75,14 @@ private fun AccessibilityModeInfoContent(
       }
 
       Text(
-        text = "Do not set the time too short, or the taps may not be possible to do quickly enough.",
+        text = stringResource(R.string.Accessibility__info_tip_time_limit),
         style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.Medium,
         modifier = Modifier.padding(bottom = 24.dp)
       )
 
       Text(
-        text = "Tips",
+        text = stringResource(R.string.Accessibility__tips),
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(bottom = 8.dp)
       )

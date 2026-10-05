@@ -536,16 +536,27 @@ fun CallScreen(
 
         // Shown with the rest of the controls, not on a schedule of its own: the same sheet state
         // the top bar watches, so all of it fades together when "Always show call controls" is off.
-        // Tied to the hang up button for the second half, because there is nothing to make louder
-        // before a call is running.
+        //
+        // Steht ab der LOBBY, nicht erst mit dem Anruf -- die Mikrofonanzeige sitzt am unteren Ende
+        // dieser Säule und soll vor und während des Gesprächs an derselben Stelle stehen. Die
+        // Lautstärke-Knöpfe selbst sind vor dem Anruf nur unsichtbar (showVolume), weil es dann
+        // noch nichts lauter zu stellen gibt; ihren Platz halten sie trotzdem.
+        //
+        // ⚠️ localParticipant, nicht callParticipants.first(). Letzteres ist die GEGENSEITE -- so
+        //    stand es hier bis zum 5.10.2026, und die als Mikrofonanzeige gebaute Anzeige zeigte
+        //    damit den Pegel des anderen. Signals eigener Slot weiter unten tut das absichtlich
+        //    (NOT_SELF_PIP); gewollt ist hier aber das eigene Mikrofon.
         AnimatedVisibility(
-          visible = simplified && callControlsState.displayEndCallButton && scaffoldState.bottomSheetState.targetValue != SheetValue.Hidden,
+          visible = simplified &&
+            (callControlsState.displayEndCallButton || callControlsState.displayStartCallButton) &&
+            scaffoldState.bottomSheetState.targetValue != SheetValue.Hidden,
           enter = fadeIn(),
           exit = fadeOut(),
           modifier = Modifier.align(Alignment.CenterEnd)
         ) {
           CallVolumeControls(
-            localParticipant = callParticipantsPagerState.callParticipants.firstOrNull(),
+            localParticipant = localParticipant,
+            showVolume = callControlsState.displayEndCallButton,
             modifier = Modifier
               .windowInsetsPadding(WindowInsets.navigationBarsCompat)
               .padding(end = 16.dp)

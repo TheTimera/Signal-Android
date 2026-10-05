@@ -42,6 +42,10 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
         SignalStore.accessibility.speakerAlwaysOn = event.enabled
         _state.value = _state.value.copy(speakerAlwaysOn = event.enabled)
       }
+      is AccessibilityModeSettingsEvents.ToggleShowMicLevel -> {
+        SignalStore.accessibility.showMicLevel = event.enabled
+        _state.value = _state.value.copy(showMicLevel = event.enabled)
+      }
       is AccessibilityModeSettingsEvents.ToggleAllowScreenShare -> {
         SignalStore.accessibility.allowScreenShare = event.enabled
         _state.value = _state.value.copy(allowScreenShare = event.enabled)
@@ -85,6 +89,7 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
       allowCameraSwitch = SignalStore.accessibility.allowCameraSwitch,
       allowAnswerWithoutVideo = SignalStore.accessibility.allowAnswerWithoutVideo,
       speakerAlwaysOn = SignalStore.accessibility.speakerAlwaysOn,
+      showMicLevel = SignalStore.accessibility.showMicLevel,
       allowScreenShare = SignalStore.accessibility.allowScreenShare,
       callStartVolumePercent = SignalStore.accessibility.callStartVolumePercent,
       // The row stays off the page entirely when Signal's server has screen sharing switched off:

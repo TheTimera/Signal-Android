@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -32,7 +33,9 @@ import org.signal.core.ui.compose.Rows
 import org.signal.core.ui.compose.Scaffolds
 import org.signal.core.ui.compose.SignalIcons
 import org.signal.core.ui.compose.horizontalGutters
+import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.keyvalue.AccessibilityTapCorner
+import org.thoughtcrime.securesms.keyvalue.AccessibilityValues
 
 /**
  * Lets the caregiver choose how they get back out of Accessibility Mode: the Signal PIN, or a tap
@@ -54,7 +57,15 @@ class AccessibilityExitSettingsFragment : ComposeFragment() {
   }
 }
 
-private val CORNER_LABELS = arrayOf("Top left corner", "Top right corner", "Bottom left corner", "Bottom right corner")
+// ⚠️ Beschriftungen erst im Composable aufloesen: auf oberster Ebene gibt es keinen Context und
+// damit keine Uebersetzung. Die Reihenfolge muss zu CORNER_VALUES passen.
+@Composable
+private fun cornerLabels(): Array<String> = arrayOf(
+  stringResource(R.string.Accessibility__top_left_corner),
+  stringResource(R.string.Accessibility__top_right_corner),
+  stringResource(R.string.Accessibility__bottom_left_corner),
+  stringResource(R.string.Accessibility__bottom_right_corner)
+)
 private val CORNER_VALUES = arrayOf(
   AccessibilityTapCorner.TOP_LEFT.name,
   AccessibilityTapCorner.TOP_RIGHT.name,
@@ -64,8 +75,37 @@ private val CORNER_VALUES = arrayOf(
 
 private val TAP_COUNT_VALUES = arrayOf("3", "4", "5", "6", "7", "8", "9", "10")
 
-private val TAP_WINDOW_LABELS = arrayOf("1 second", "2 seconds", "3 seconds", "5 seconds")
+// "1 second" hat eine eigene Zeichenkette, weil der Singular nicht in jeder Sprache durch
+// Einsetzen einer 1 entsteht. Reihenfolge wie TAP_WINDOW_VALUES.
+@Composable
+private fun tapWindowLabels(): Array<String> = arrayOf(
+  stringResource(R.string.Accessibility__one_second),
+  stringResource(R.string.Accessibility__seconds, "2"),
+  stringResource(R.string.Accessibility__seconds, "3"),
+  stringResource(R.string.Accessibility__seconds, "5")
+)
 private val TAP_WINDOW_VALUES = arrayOf("1000", "2000", "3000", "5000")
+
+/**
+ * Both lists are filtered against the other one's current value, so no reachable-looking pair of
+ * choices can add up to a gesture nobody can perform -- see [AccessibilityValues.MAX_TAPS_PER_SECOND].
+ * Filtering rather than warning was the deliberate choice: with the Signal PIN switched off the
+ * pattern is the only way back into these settings, and a warning that can be clicked past is not
+ * a safeguard when the consequence is resetting Signal.
+ */
+private fun tapCountChoices(windowMillis: Int): Array<String> {
+  val most = AccessibilityValues.maxTapCountFor(windowMillis)
+  return TAP_COUNT_VALUES.filter { it.toInt() <= most }.toTypedArray()
+}
+
+@Composable
+private fun tapWindowChoices(tapCount: Int): Pair<Array<String>, Array<String>> {
+  val keep = TAP_WINDOW_VALUES.indices.filter {
+    AccessibilityValues.isTapPatternReachable(tapCount, TAP_WINDOW_VALUES[it].toInt())
+  }
+  val labels = tapWindowLabels()
+  return keep.map { labels[it] }.toTypedArray() to keep.map { TAP_WINDOW_VALUES[it] }.toTypedArray()
+}
 
 @Composable
 private fun AccessibilityExitSettingsContent(
@@ -74,8 +114,8 @@ private fun AccessibilityExitSettingsContent(
   onNavigationClick: () -> Unit
 ) {
   Scaffolds.Settings(
-    title = "How to exit Accessibility mode",
-    navigationContentDescription = "Go back",
+    title = stringResource(R.string.Accessibility__how_to_exit),
+    navigationContentDescription = stringResource(R.string.Accessibility__go_back),
     navigationIcon = SignalIcons.ArrowStart.imageVector,
     onNavigationClick = onNavigationClick
   ) { contentPadding ->
@@ -85,11 +125,11 @@ private fun AccessibilityExitSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.exitWithPin && state.hasPin,
-          text = "Signal PIN",
+          text = stringResource(R.string.Accessibility__signal_pin),
           label = if (state.hasPin) {
-            "Your Signal PIN gets you back out of Accessibility mode. With this off, the tap pattern below is the only way out."
+            stringResource(R.string.Accessibility__pin_gets_you_out)
           } else {
-            "You have no Signal PIN, so the tap pattern below is the only way out. Set up a PIN in Settings to use this."
+            stringResource(R.string.Accessibility__no_pin_tap_pattern_only_way)
           },
           enabled = state.hasPin,
           onCheckChanged = { onEvent(AccessibilityExitSettingsEvents.ToggleExitWithPin(it)) }
@@ -102,7 +142,7 @@ private fun AccessibilityExitSettingsContent(
 
       item {
         Text(
-          text = "Tap pattern",
+          text = stringResource(R.string.Accessibility__tap_pattern),
           style = MaterialTheme.typography.titleMedium,
           color = MaterialTheme.colorScheme.onSurface,
           modifier = Modifier
@@ -112,9 +152,20 @@ private fun AccessibilityExitSettingsContent(
       }
 
       item {
+        Text(
+          text = stringResource(R.string.Accessibility__tap_pattern_warning),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier
+            .horizontalGutters()
+            .padding(bottom = 12.dp)
+        )
+      }
+
+      item {
         Rows.RadioListRow(
-          text = "Corner to tap",
-          labels = CORNER_LABELS,
+          text = stringResource(R.string.Accessibility__corner_to_tap),
+          labels = cornerLabels(),
           values = CORNER_VALUES,
           selectedValue = state.tapCorner.name,
           enabled = state.tapMethodActive,
@@ -123,10 +174,11 @@ private fun AccessibilityExitSettingsContent(
       }
 
       item {
+        val counts = tapCountChoices(state.tapWindowMillis)
         Rows.RadioListRow(
-          text = "Number of taps",
-          labels = TAP_COUNT_VALUES,
-          values = TAP_COUNT_VALUES,
+          text = stringResource(R.string.Accessibility__number_of_taps),
+          labels = counts,
+          values = counts,
           selectedValue = state.tapCount.toString(),
           enabled = state.tapMethodActive,
           onSelected = { onEvent(AccessibilityExitSettingsEvents.SetTapCount(it.toInt())) }
@@ -134,10 +186,11 @@ private fun AccessibilityExitSettingsContent(
       }
 
       item {
+        val (windowLabels, windowValues) = tapWindowChoices(state.tapCount)
         Rows.RadioListRow(
-          text = "Time limit",
-          labels = TAP_WINDOW_LABELS,
-          values = TAP_WINDOW_VALUES,
+          text = stringResource(R.string.Accessibility__time_limit),
+          labels = windowLabels,
+          values = windowValues,
           selectedValue = state.tapWindowMillis.toString(),
           enabled = state.tapMethodActive,
           onSelected = { onEvent(AccessibilityExitSettingsEvents.SetTapWindowMillis(it.toInt())) }
@@ -203,7 +256,7 @@ private fun TapTargetHint(
     }
 
     Text(
-      text = "Tap the contact overview screen $tapCount times in $secondsText seconds to leave Accessibility mode.",
+      text = stringResource(R.string.Accessibility__tap_hint, tapCount, secondsText),
       style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       modifier = Modifier.padding(start = 16.dp)

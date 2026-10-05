@@ -24,12 +24,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.signal.core.ui.compose.Dialogs
+import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.accessibility.rememberPinCheck
 
 /**
@@ -70,21 +72,21 @@ fun AccessibilityActivationDialog(
     onDismissRequest = onDismiss,
     modifier = Modifier,
     title = {
-      Text(text = "This is Accessibility mode")
+      Text(text = stringResource(R.string.Accessibility__this_is_accessibility_mode))
     },
     text = {
       Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         when {
           pinIsExitMethod -> {
             Text(
-              text = "Enter your Signal PIN to confirm you know it. It is the only way back out of Accessibility mode unless you switch to the tap pattern.",
+              text = stringResource(R.string.Accessibility__enter_pin_to_confirm),
               style = MaterialTheme.typography.bodyMedium
             )
 
             OutlinedTextField(
               value = pin,
               onValueChange = { pin = it },
-              label = { Text(text = "Signal PIN") },
+              label = { Text(text = stringResource(R.string.Accessibility__signal_pin)) },
               singleLine = true,
               // Nothing left to type once it is right, and a locked field lets the keyboard close
               // instead of covering the button that just became available.
@@ -101,7 +103,7 @@ fun AccessibilityActivationDialog(
             // disabled until the PIN is right.
             if (pinCheck.failed) {
               Text(
-                text = "That is not your Signal PIN.",
+                text = stringResource(R.string.Accessibility__that_is_not_your_pin),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(top = 4.dp)
@@ -111,7 +113,7 @@ fun AccessibilityActivationDialog(
 
           !hasPin -> {
             Text(
-              text = "You have no Signal PIN. The tap pattern is therefore your only way back out of Accessibility mode. You can see and change it under \"How to exit Accessibility mode\".",
+              text = stringResource(R.string.Accessibility__no_pin_tap_pattern_only),
               style = MaterialTheme.typography.bodyMedium
             )
 
@@ -119,11 +121,11 @@ fun AccessibilityActivationDialog(
               onClick = onSetUpTapPattern,
               modifier = Modifier.padding(top = 4.dp)
             ) {
-              Text(text = "Change the tap pattern")
+              Text(text = stringResource(R.string.Accessibility__change_the_tap_pattern))
             }
 
             Text(
-              text = "You can also create a Signal PIN and use the PIN method instead.",
+              text = stringResource(R.string.Accessibility__or_create_a_pin),
               style = MaterialTheme.typography.bodyMedium,
               modifier = Modifier.padding(top = 8.dp)
             )
@@ -132,13 +134,13 @@ fun AccessibilityActivationDialog(
               onClick = onCreatePin,
               modifier = Modifier.padding(top = 4.dp)
             ) {
-              Text(text = "Create a Signal PIN")
+              Text(text = stringResource(R.string.Accessibility__create_a_signal_pin))
             }
           }
 
           else -> {
             Text(
-              text = "The tap pattern is your way back out of Accessibility mode. You can change it under \"How to exit Accessibility mode\".",
+              text = stringResource(R.string.Accessibility__tap_pattern_is_your_way_out),
               style = MaterialTheme.typography.bodyMedium
             )
           }
@@ -148,7 +150,7 @@ fun AccessibilityActivationDialog(
         // secret that has nothing to do with leaving the mode.
         if (pinIsExitMethod) {
           Text(
-            text = "If you forget your Signal PIN there is no way to recover it. You would have to reset Signal and lose its data.",
+            text = stringResource(R.string.Accessibility__forgotten_pin_warning),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium,
             fontStyle = FontStyle.Italic,
@@ -159,7 +161,7 @@ fun AccessibilityActivationDialog(
     },
     dismissButton = {
       TextButton(onClick = onMoreInformation) {
-        Text(text = "Need more information?")
+        Text(text = stringResource(R.string.Accessibility__need_more_information))
       }
     },
     confirmButton = {
@@ -167,7 +169,7 @@ fun AccessibilityActivationDialog(
         onClick = onConfirm,
         enabled = pinCheck.verified || !pinIsExitMethod
       ) {
-        Text(text = "Got it")
+        Text(text = stringResource(R.string.Accessibility__got_it))
       }
     }
   )

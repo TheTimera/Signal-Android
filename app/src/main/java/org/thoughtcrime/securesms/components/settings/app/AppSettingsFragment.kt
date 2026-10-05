@@ -418,7 +418,7 @@ private fun AppSettingsContent(
 
         item {
           Rows.TextRow(
-            text = "Accessibility mode",
+            text = stringResource(R.string.Accessibility__accessibility_mode),
             icon = painterResource(R.drawable.symbol_video_24),
             onClick = {
               callbacks.navigate(AppSettingsRoute.AccessibilityRoute.AccessibilityMode)

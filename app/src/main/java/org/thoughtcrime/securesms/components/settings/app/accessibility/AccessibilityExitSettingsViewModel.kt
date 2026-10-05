@@ -26,28 +26,48 @@ class AccessibilityExitSettingsViewModel : ViewModel() {
         SignalStore.accessibility.tapCorner = event.corner
         _state.value = _state.value.copy(tapCorner = event.corner)
       }
+      // Both setters bound the PAIR, not just their own value. Ten taps and a one second limit are
+      // each within their own bounds and together impossible, and with the PIN switched off that
+      // is a permanent lockout. The list no longer offers such a pair; this is the second line of
+      // defence, for values a previous build may have stored.
       is AccessibilityExitSettingsEvents.SetTapCount -> {
-        val clamped = event.count.coerceIn(AccessibilityValues.MIN_TAP_COUNT, AccessibilityValues.MAX_TAP_COUNT)
-        SignalStore.accessibility.tapCount = clamped
-        _state.value = _state.value.copy(tapCount = clamped)
+        val count = event.count.coerceIn(AccessibilityValues.MIN_TAP_COUNT, AccessibilityValues.MAX_TAP_COUNT)
+        val window = SignalStore.accessibility.tapWindowMillis
+          .coerceAtLeast(AccessibilityValues.minTapWindowMillisFor(count))
+        SignalStore.accessibility.tapCount = count
+        SignalStore.accessibility.tapWindowMillis = window
+        _state.value = _state.value.copy(tapCount = count, tapWindowMillis = window)
       }
       is AccessibilityExitSettingsEvents.SetTapWindowMillis -> {
-        // The design warns against a window so short that the caregiver cannot tap fast enough --
-        // that would lock them out of their own device, so the bound is enforced here too.
-        val clamped = event.millis.coerceIn(AccessibilityValues.MIN_TAP_WINDOW_MILLIS, AccessibilityValues.MAX_TAP_WINDOW_MILLIS)
-        SignalStore.accessibility.tapWindowMillis = clamped
-        _state.value = _state.value.copy(tapWindowMillis = clamped)
+        val window = event.millis.coerceIn(AccessibilityValues.MIN_TAP_WINDOW_MILLIS, AccessibilityValues.MAX_TAP_WINDOW_MILLIS)
+        val count = SignalStore.accessibility.tapCount
+          .coerceAtMost(AccessibilityValues.maxTapCountFor(window))
+        SignalStore.accessibility.tapWindowMillis = window
+        SignalStore.accessibility.tapCount = count
+        _state.value = _state.value.copy(tapWindowMillis = window, tapCount = count)
       }
     }
   }
 
   private fun loadState(): AccessibilityExitSettingsState {
+    val count = SignalStore.accessibility.tapCount
+      .coerceIn(AccessibilityValues.MIN_TAP_COUNT, AccessibilityValues.MAX_TAP_COUNT)
+    val window = SignalStore.accessibility.tapWindowMillis
+      .coerceIn(AccessibilityValues.MIN_TAP_WINDOW_MILLIS, AccessibilityValues.MAX_TAP_WINDOW_MILLIS)
+      .coerceAtLeast(AccessibilityValues.minTapWindowMillisFor(count))
+
+    // Written back, not merely displayed. Showing a corrected window while the gesture still
+    // evaluates the stored one would be the worse of the two failures: the screen would describe a
+    // way out that does not work.
+    if (count != SignalStore.accessibility.tapCount) SignalStore.accessibility.tapCount = count
+    if (window != SignalStore.accessibility.tapWindowMillis) SignalStore.accessibility.tapWindowMillis = window
+
     return AccessibilityExitSettingsState(
       exitWithPin = SignalStore.accessibility.exitWithPin,
       hasPin = SignalStore.svr.hasPin(),
       tapCorner = SignalStore.accessibility.tapCorner,
-      tapCount = SignalStore.accessibility.tapCount,
-      tapWindowMillis = SignalStore.accessibility.tapWindowMillis
+      tapCount = count,
+      tapWindowMillis = window
     )
   }
 }

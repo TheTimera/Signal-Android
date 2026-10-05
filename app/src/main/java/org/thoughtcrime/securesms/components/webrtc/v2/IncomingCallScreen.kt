@@ -202,8 +202,12 @@ private fun SimplifiedButtons(
       CallActionButton(
         text = stringResource(R.string.WebRtcCallScreen__answer_without_video),
         imageVector = ImageVector.vectorResource(R.drawable.symbol_video_slash_fill_24),
-        containerColor = Color.White,
-        contentColor = Color.Black,
+        // Dark and tonal, like the mode's other buttons. Signal's white-on-black comes from its
+        // own layout, where this button stands alone; here it sits between a red and a green one
+        // and was the brightest thing on the screen -- which reads as "press this", while
+        // declining and answering are the two actual choices.
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         onClick = callScreenControlsListener::onAcceptCallWithVoiceOnlyPressed,
         modifier = Modifier.weight(1f)
       )

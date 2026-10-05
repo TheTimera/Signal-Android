@@ -21,10 +21,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -59,6 +61,16 @@ fun CallControls(
   val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
   val simplified = SignalStore.accessibility.simplifiesCallScreen
 
+  // Nur im Modus trägt "Start Video Call" ein Symbol, und zwar dasselbe, das AcceptCallButton für
+  // denselben Fall nimmt. null heißt: Signals Knopf bleibt wie er ist.
+  val startCallIcon = if (simplified) {
+    ImageVector.vectorResource(
+      id = if (callControlsState.isVideoEnabled) R.drawable.symbol_video_fill_24 else R.drawable.symbol_phone_fill_white_24
+    )
+  } else {
+    null
+  }
+
   val density = LocalDensity.current
   val bottom = with(density) { WindowInsets.navigationBarsIgnoringVisibility.getBottom(density).toDp() }
 
@@ -71,6 +83,21 @@ fun CallControls(
       horizontalArrangement = Arrangement.spaceBetweenUpTo(20.dp),
       modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
     ) {
+      // In the mode the back arrow lives in this strip rather than in the top bar, and it is the
+      // first item in the row -- which is where a back arrow is looked for. Before, it sat between
+      // the hangup and "Start Video Call", so it read as part of that decision rather than as the
+      // way out of it.
+      //
+      // What this does NOT buy, and is not meant to: a fixed spot on screen. The row centres its
+      // group -- spaceBetweenUpTo caps the gaps and the remaining width becomes outer margin --
+      // so the arrow is leftmost WITHIN THE GROUP and its absolute position still shifts when
+      // toggles are switched on or off (measured x=389 of 1280 with all three on). Pinning it to
+      // the sheet edge was built and rejected on 4.10.2026: leftmost in the group is the wanted
+      // behaviour. Hence no Box wrapper -- if one shows up here again, this is why it was removed.
+      if (simplified && callControlsState.displayStartCallButton) {
+        CallBackButton(onClick = callScreenControlsListener::onNavigateUpClicked)
+      }
+
       // Never in the mode. Signal shows this button only while the local video is off or a headset
       // is attached (WebRtcControls.displayAudioToggle), which in a video-only mode means only for
       // the moment between answering and the camera starting -- it flashed and vanished. The route
@@ -148,19 +175,13 @@ fun CallControls(
         }
       }
 
-      // In the mode the back arrow lives here rather than in the top bar: it belongs to the same
-      // decision as "Start Video Call" -- place the call or do not -- and the two are then one
-      // glance apart instead of at opposite corners.
-      if (simplified && callControlsState.displayStartCallButton) {
-        CallBackButton(onClick = callScreenControlsListener::onNavigateUpClicked)
-      }
-
       if (callControlsState.displayStartCallButton && !isPortrait) {
         StartCallButton(
           text = stringResource(callControlsState.startCallButtonText),
           onClick = {
             callScreenControlsListener.onStartCall(callControlsState.isVideoEnabled)
-          }
+          },
+          imageVector = startCallIcon
         )
       }
     }
@@ -170,7 +191,8 @@ fun CallControls(
         text = stringResource(callControlsState.startCallButtonText),
         onClick = {
           callScreenControlsListener.onStartCall(callControlsState.isVideoEnabled)
-        }
+        },
+        imageVector = startCallIcon
       )
     }
   }
@@ -534,7 +556,7 @@ data class CallControlsState(
         displayStartCallButton = webRtcControls.displayStartCallControls(),
         // "Start Call" is ambiguous where the mode only ever places video calls.
         startCallButtonText = if (SignalStore.accessibility.simplifiesCallScreen) {
-          R.string.WebRtcCallView__start_video_call
+          R.string.Accessibility__start_video_call
         } else {
           webRtcControls.startCallButtonText
         },

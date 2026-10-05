@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -33,7 +34,14 @@ import org.thoughtcrime.securesms.util.navigation.safeNavigate
  * silence is not on the list.
  */
 private val VOLUME_VALUES = (10..100 step 10).map { it.toString() }.toTypedArray()
-private val VOLUME_LABELS = VOLUME_VALUES.map { "$it %" }.toTypedArray()
+
+// Die Beschriftungen entstehen erst im Composable: "%1$d %%" ist uebersetzbar, ein hier gebautes
+// "$it %" waere es nicht. Das Prozentzeichen steht in manchen Sprachen anders oder mit anderem
+// Abstand.
+@Composable
+private fun volumeLabels(): Array<String> = VOLUME_VALUES.map {
+  stringResource(R.string.Accessibility__percent, it.toInt())
+}.toTypedArray()
 
 /**
  * Caregiver-facing configuration for Accessibility Mode.
@@ -90,8 +98,8 @@ private fun AccessibilityModeSettingsContent(
   onActivated: () -> Unit
 ) {
   Scaffolds.Settings(
-    title = "Accessibility mode",
-    navigationContentDescription = "Go back",
+    title = stringResource(R.string.Accessibility__accessibility_mode),
+    navigationContentDescription = stringResource(R.string.Accessibility__go_back),
     navigationIcon = SignalIcons.ArrowStart.imageVector,
     onNavigationClick = onNavigationClick
   ) { contentPadding ->
@@ -100,11 +108,11 @@ private fun AccessibilityModeSettingsContent(
     ) {
       item {
         Rows.TextRow(
-          text = "How to exit Accessibility mode",
+          text = stringResource(R.string.Accessibility__how_to_exit),
           label = if (state.hasPin) {
-            "Your Signal PIN unlocks these settings. You can switch to a tap pattern instead."
+            stringResource(R.string.Accessibility__pin_unlocks_these_settings)
           } else {
-            "You have no Signal PIN, so a tap pattern will be used to unlock these settings."
+            stringResource(R.string.Accessibility__no_pin_tap_pattern_used)
           },
           onClick = onExitSettingsClick
         )
@@ -113,8 +121,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.iconsAlwaysVisible,
-          text = "Always show call controls",
-          label = "The buttons stay on screen for the whole call. Normally they fade out and come back when the screen is tapped.",
+          text = stringResource(R.string.Accessibility__always_show_call_controls),
+          label = stringResource(R.string.Accessibility__always_show_call_controls_label),
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleIconsAlwaysVisible(it)) }
         )
       }
@@ -125,7 +133,7 @@ private fun AccessibilityModeSettingsContent(
 
       item {
         Text(
-          text = "Calls are video only. Each button below adds one exception to that.",
+          text = stringResource(R.string.Accessibility__video_only_header),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           modifier = Modifier
@@ -137,8 +145,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowCameraToggle,
-          text = "Camera button",
-          label = "Adds a camera button to the call screen.",
+          text = stringResource(R.string.Accessibility__camera_button),
+          label = stringResource(R.string.Accessibility__camera_button_label),
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowCameraToggle(it)) }
         )
       }
@@ -146,8 +154,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowAnswerWithoutVideo,
-          text = "Answer without video button",
-          label = "Adds a button for answering with the camera off. Shown while the phone rings.",
+          text = stringResource(R.string.Accessibility__answer_without_video_button),
+          label = stringResource(R.string.Accessibility__answer_without_video_button_label),
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowAnswerWithoutVideo(it)) }
         )
       }
@@ -155,8 +163,8 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowMicToggle,
-          text = "Microphone button",
-          label = "Adds a microphone button to the call screen.",
+          text = stringResource(R.string.Accessibility__microphone_button),
+          label = stringResource(R.string.Accessibility__microphone_button_label),
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowMicToggle(it)) }
         )
       }
@@ -164,25 +172,34 @@ private fun AccessibilityModeSettingsContent(
       item {
         Rows.ToggleRow(
           checked = state.allowCameraSwitch,
-          text = "Camera switch button",
-          label = "Adds a button for switching between the front and rear camera.",
+          text = stringResource(R.string.Accessibility__camera_switch_button),
+          label = stringResource(R.string.Accessibility__camera_switch_button_label),
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowCameraSwitch(it)) }
         )
       }
 
       item {
         Rows.ToggleRow(
+          checked = state.showMicLevel,
+          text = stringResource(R.string.Accessibility__microphone_level),
+          label = stringResource(R.string.Accessibility__microphone_level_label),
+          onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleShowMicLevel(it)) }
+        )
+      }
+
+      item {
+        Rows.ToggleRow(
           checked = state.speakerAlwaysOn,
-          text = "Always use the speaker",
-          label = "Every call is put on the speakerphone as soon as it connects, incoming calls included.",
+          text = stringResource(R.string.Accessibility__always_use_the_speaker),
+          label = stringResource(R.string.Accessibility__always_use_the_speaker_label),
           onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleSpeakerAlwaysOn(it)) }
         )
       }
 
       item {
         Rows.RadioListRow(
-          text = "Volume at the start of a call",
-          labels = VOLUME_LABELS,
+          text = stringResource(R.string.Accessibility__volume_at_the_start_of_a_call),
+          labels = volumeLabels(),
           values = VOLUME_VALUES,
           selectedValue = state.callStartVolumePercent.toString(),
           onSelected = { onEvent(AccessibilityModeSettingsEvents.SetCallStartVolumePercent(it.toInt())) }
@@ -193,8 +210,8 @@ private fun AccessibilityModeSettingsContent(
         item {
           Rows.ToggleRow(
             checked = state.allowScreenShare,
-            text = "Screen sharing button",
-            label = "Adds a button for sharing the screen, and for stopping again.",
+            text = stringResource(R.string.Accessibility__screen_sharing_button),
+            label = stringResource(R.string.Accessibility__screen_sharing_button_label),
             onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowScreenShare(it)) }
           )
         }
@@ -215,7 +232,7 @@ private fun AccessibilityModeSettingsContent(
             .horizontalGutters()
             .padding(top = 16.dp, bottom = 24.dp)
         ) {
-          Text(text = if (state.enabled) "Turn off Accessibility mode" else "Turn on Accessibility mode")
+          Text(text = if (state.enabled) stringResource(R.string.Accessibility__turn_off_accessibility_mode) else stringResource(R.string.Accessibility__turn_on_accessibility_mode))
         }
       }
     }

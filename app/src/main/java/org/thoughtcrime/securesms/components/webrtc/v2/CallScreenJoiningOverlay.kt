@@ -105,6 +105,7 @@ fun CallScreenJoiningOverlay(
     // Accessibility Mode carries the camera switch in the control strip, where every other control
     // sits. Signal's own one in the corner would be the second icon for the same thing.
     val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable && !SignalStore.accessibility.simplifiesCallScreen
+    val showAudioIndicator = isLocalVideoEnabled && !SignalStore.accessibility.simplifiesCallScreen
 
     BottomControlsWithOptionalBar(
       bottomSheetPadding = bottomSheetPadding,
@@ -113,7 +114,7 @@ fun CallScreenJoiningOverlay(
         .fillMaxWidth()
         .padding(horizontal = 16.dp),
       controlsRow = {
-        if (showCameraToggle || isLocalVideoEnabled) {
+        if (showCameraToggle || showAudioIndicator) {
           Row(
             modifier = Modifier
               .layoutId(BottomControlsLayoutId.CONTROLS)
@@ -121,7 +122,17 @@ fun CallScreenJoiningOverlay(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
           ) {
-            if (isLocalVideoEnabled) {
+            // Signal zeichnet hier seine eigene Mikrofonanzeige. Im Modus sitzt sie in der
+            // Lautstärkesäule am rechten Rand, unter dem Minus-Knopf (CallVolumeControls), und
+            // zwar in einem festen Slot, damit sie nicht springt.
+            // ⚠️ Zwei Anläufe, beide falsch, am 4./5.10.2026:
+            //    1. ganz ausgeblendet -- dann fehlte beim Wählen jedes Zeichen, dass das Mikrofon lebt;
+            //    2. nur nach rechts geschoben -- dann war sie DOPPELT zu sehen, einmal in der Säule
+            //       und einmal hier, weil die Säule in diesem Zustand bereits steht.
+            // Richtig ist: hier gar keine, die Säule ist die einzige Stelle. Sie erscheint, sobald
+            // der Auflegen-Knopf da ist (CallScreen.kt), also vom Klingeln an. In der Lobby gibt es
+            // folglich keine -- dort läuft noch kein Gespräch, dessen Pegel man ablesen könnte.
+            if (showAudioIndicator) {
               ParticipantAudioIndicator(
                 participant = localParticipant,
                 selfPipMode = SelfPipMode.OVERLAY_SELF_PIP

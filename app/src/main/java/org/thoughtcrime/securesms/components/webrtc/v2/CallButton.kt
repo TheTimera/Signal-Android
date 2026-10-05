@@ -231,8 +231,16 @@ fun CallBackButton(
     size = buttonSize,
     modifier = modifier.size(buttonSize),
     colors = IconButtons.iconButtonColors(
-      containerColor = MaterialTheme.colorScheme.secondaryContainer,
-      contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+      // Rot, entschieden am 5.10.2026: in der Lobby stehen zwei Wege nebeneinander, anrufen und
+      // doch nicht anrufen. Signal färbt dieses Paar überall gleich -- grün für annehmen, rot für
+      // ablehnen und auflegen -- und die Lobby ist derselbe Entschluss, einen Schritt früher.
+      //
+      // Es sind Signals Ressourcen, kein eigener Ton: webrtc_hangup_background (#F07168) wie
+      // EndVideoCallButton, HangupButton und "Decline", dazu signal_light_colorOnPrimary als
+      // Symbolfarbe, die alle farbigen Anrufknöpfe setzen. Der erste Entwurf nahm Color.Red
+      // (#FF0000) und stand damit sichtbar NEBEN Signals Rot statt darin.
+      containerColor = colorResource(id = R.color.webrtc_hangup_background),
+      contentColor = colorResource(id = CoreUiR.color.signal_light_colorOnPrimary)
     )
   ) {
     Icon(
@@ -250,7 +258,7 @@ fun EndVideoCallButton(
   modifier: Modifier = Modifier
 ) {
   CallActionButton(
-    text = stringResource(id = R.string.WebRtcCallView__end_video_call),
+    text = stringResource(id = R.string.Accessibility__end_video_call),
     imageVector = ImageVector.vectorResource(id = R.drawable.symbol_phone_down_fill_24),
     containerColor = colorResource(id = R.color.webrtc_hangup_background),
     onClick = onClick,
@@ -334,21 +342,54 @@ fun AnswerWithoutVideoButton(
   )
 }
 
+/**
+ * Places the call from the lobby.
+ *
+ * [imageVector] is for Accessibility Mode only: with an icon the button is built exactly like
+ * [CallActionButton] -- icon, 12 dp, label -- so that "Start Video Call" and "End Video Call" read
+ * as the same kind of control rather than two different ones. Signal's own screens pass nothing and
+ * keep the plain label, including its wider padding; an icon there would change a screen this fork
+ * has no business changing.
+ */
 @Composable
 fun StartCallButton(
   text: String,
   onClick: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
+  imageVector: ImageVector? = null
 ) {
+  val contentColor = colorResource(id = CoreUiR.color.signal_light_colorOnPrimary)
+
   Buttons.LargePrimary(
     onClick = onClick,
     modifier = modifier.height(56.dp),
     colors = ButtonDefaults.buttonColors(
-      containerColor = colorResource(id = CoreUiR.color.signal_light_colorPrimary),
-      contentColor = colorResource(id = CoreUiR.color.signal_light_colorOnPrimary)
+      // Grün, entschieden am 5.10.2026, und zwar webrtc_answer_background (#34C759) -- dieselbe
+      // Ressource wie AcceptCallButton und der "Answer"-Knopf. Vorher stand hier Signals
+      // allgemeines signal_light_colorPrimary; das ist die Farbe für "irgendein Hauptknopf",
+      // während dieser hier genau eine Sache tut: einen Anruf beginnen. Gegenstück ist das Rot
+      // am CallBackButton.
+      containerColor = colorResource(id = R.color.webrtc_answer_background),
+      contentColor = contentColor
     ),
-    contentPadding = PaddingValues(horizontal = 48.dp, vertical = 18.dp)
+    // Mit Symbol dasselbe Innenmaß wie CallActionButton, sonst Signals ursprüngliches.
+    contentPadding = if (imageVector != null) {
+      PaddingValues(horizontal = 24.dp, vertical = 16.dp)
+    } else {
+      PaddingValues(horizontal = 48.dp, vertical = 18.dp)
+    }
   ) {
+    if (imageVector != null) {
+      Icon(
+        imageVector = imageVector,
+        contentDescription = null,
+        modifier = Modifier.size(defaultCallButtonIconSize),
+        tint = contentColor
+      )
+
+      Spacer(modifier = Modifier.width(12.dp))
+    }
+
     Text(
       text = text,
       style = MaterialTheme.typography.labelLarge

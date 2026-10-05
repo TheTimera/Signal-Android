@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,6 +47,7 @@ import org.signal.core.ui.compose.SignalIcons
 import org.signal.core.ui.compose.statusBarsCompat
 import org.signal.core.ui.compose.systemBarsCompat
 import org.signal.core.util.EllapsedTimeFormatter
+import org.thoughtcrime.securesms.R
 import org.thoughtcrime.securesms.avatar.AvatarImage
 import org.thoughtcrime.securesms.keyvalue.AccessibilityTapCorner
 import org.thoughtcrime.securesms.recipients.RecipientId
@@ -61,7 +63,7 @@ private val EXIT_TARGET_SIZE = 84.dp
 /**
  * The whole app while Accessibility Mode is on: one tile per contact, and tapping one goes straight
  * into Signal's own call lobby. The lobby already shows who is about to be called and asks for a
- * second tap on "Start Video Call", so a confirmation screen of our own sat in front of it saying
+ * second tap on stringResource(R.string.Accessibility__start_video_call), so a confirmation screen of our own sat in front of it saying
  * the same thing twice.
  *
  * Exactly one way back out is offered, matching the configured method:
@@ -119,10 +121,10 @@ fun AccessibilityHomeScreen(
 
   if (showTapConfirmation) {
     Dialogs.SimpleAlertDialog(
-      title = "Leave Accessibility mode?",
-      body = "The full Signal app comes back. You can switch Accessibility mode on again in Settings.",
-      confirm = "Leave",
-      dismiss = "Cancel",
+      title = stringResource(R.string.Accessibility__leave_accessibility_mode_question),
+      body = stringResource(R.string.Accessibility__leave_brings_back_full_app),
+      confirm = stringResource(R.string.Accessibility__leave),
+      dismiss = stringResource(R.string.Accessibility__cancel),
       onConfirm = {
         showTapConfirmation = false
         onExit()
@@ -162,7 +164,7 @@ private fun EndedCallNotice(
         Text(
           // "Call ended" rather than "Video call ended": an incoming call can be voice only, and
           // the notice does not know which it was.
-          text = "Call ended",
+          text = stringResource(R.string.Accessibility__call_ended),
           style = MaterialTheme.typography.headlineMedium,
           color = MaterialTheme.colorScheme.error
         )
@@ -171,7 +173,7 @@ private fun EndedCallNotice(
           // Seconds, despite the name: fromDurationMillis divides by 3600 and 60, and Signal's own
           // call screen feeds it the elapsed seconds. Passing millis showed 14:27:18 for a 52
           // second call.
-          text = EllapsedTimeFormatter.fromDurationMillis(endedCall.durationMillis / 1000)?.toString() ?: "00:00",
+          text = EllapsedTimeFormatter.fromDurationMillis(endedCall.durationMillis / 1000)?.toString() ?: stringResource(R.string.Accessibility__no_duration),
           style = MaterialTheme.typography.headlineSmall,
           color = MaterialTheme.colorScheme.error,
           modifier = Modifier.padding(top = 8.dp)
@@ -201,7 +203,7 @@ private fun ContactPicker(
 
       state.contacts.isEmpty() -> {
         Text(
-          text = "No contacts yet. Whoever set up this device needs to start a chat first.",
+          text = stringResource(R.string.Accessibility__no_contacts_yet),
           style = MaterialTheme.typography.headlineSmall,
           textAlign = TextAlign.Center,
           modifier = Modifier
@@ -250,7 +252,7 @@ private fun ContactPicker(
       ) {
         Icon(
           imageVector = SignalIcons.MoreVertical.imageVector,
-          contentDescription = "More options",
+          contentDescription = stringResource(R.string.Accessibility__more_options),
           tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
       }
