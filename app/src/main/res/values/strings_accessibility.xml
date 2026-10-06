@@ -78,6 +78,7 @@
   <string name="Accessibility__volume_at_the_start_of_a_call">Volume at the start of a call</string>
   <string name="Accessibility__screen_sharing_button">Screen sharing button</string>
   <string name="Accessibility__screen_sharing_button_label">Adds a button for sharing the screen, and for stopping again.</string>
+  <string name="Accessibility__screen_sharing_unavailable_label">Not available on this device yet. Signal enables screen sharing from its server, and that setting only arrives once the device is registered and Signal has been restarted. The switch appears here by itself as soon as it does — and if it never does, Signal has the feature switched off for this account.</string>
   <string name="Accessibility__turn_on_accessibility_mode">Turn on Accessibility mode</string>
   <string name="Accessibility__turn_off_accessibility_mode">Turn off Accessibility mode</string>
   <!-- %1$d ist die Prozentzahl; %% ist ein einzelnes Prozentzeichen -->

@@ -215,13 +215,24 @@ private fun AccessibilityModeSettingsContent(
         )
       }
 
-      if (state.screenShareAvailable) {
-        item {
+      // Der Schalter steht nur da, wenn Signals Server die Bildschirmfreigabe freigegeben hat --
+      // ein Schalter, der nichts bewirken kann, ist schlimmer als keiner. Statt ihn ersatzlos
+      // wegzulassen, steht an seiner Stelle der Grund: sonst sucht die betreuende Person nach einer
+      // Zeile, die in jeder Anleitung steht und hier fehlt. Sobald der Wert ankommt, ersetzt der
+      // Schalter den Hinweis von selbst -- gesteuert von derselben Bedingung, nicht von einer
+      // zweiten, die auseinanderlaufen könnte.
+      item {
+        if (state.screenShareAvailable) {
           Rows.ToggleRow(
             checked = state.allowScreenShare,
             text = stringResource(R.string.Accessibility__screen_sharing_button),
             label = stringResource(R.string.Accessibility__screen_sharing_button_label),
             onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleAllowScreenShare(it)) }
+          )
+        } else {
+          Rows.TextRow(
+            text = stringResource(R.string.Accessibility__screen_sharing_button),
+            label = stringResource(R.string.Accessibility__screen_sharing_unavailable_label)
           )
         }
       }

@@ -76,6 +76,7 @@
   <string name="Accessibility__volume_at_the_start_of_a_call">Lautstärke zu Beginn eines Anrufs</string>
   <string name="Accessibility__screen_sharing_button">Knopf zur Bildschirmfreigabe</string>
   <string name="Accessibility__screen_sharing_button_label">Fügt einen Knopf hinzu, um den Bildschirm freizugeben und wieder zu beenden.</string>
+  <string name="Accessibility__screen_sharing_unavailable_label">Auf diesem Gerät noch nicht verfügbar. Ob Anrufe den Bildschirm teilen dürfen, gibt Signal vom Server vor, und diese Angabe kommt erst an, wenn das Gerät registriert und Signal einmal neu gestartet wurde. Der Schalter erscheint dann von selbst an dieser Stelle — bleibt er aus, hat Signal die Funktion für dieses Konto abgeschaltet.</string>
   <string name="Accessibility__turn_on_accessibility_mode">Einfachen Modus einschalten</string>
   <string name="Accessibility__turn_off_accessibility_mode">Einfachen Modus ausschalten</string>
 
