@@ -69,6 +69,8 @@
   <string name="Accessibility__camera_switch_button_label">Fügt einen Knopf hinzu, um zwischen vorderer und hinterer Kamera zu wechseln.</string>
   <string name="Accessibility__microphone_level">Mikrofonpegel</string>
   <string name="Accessibility__microphone_level_label">Zeigt unter den Lautstärke-Knöpfen an, wie laut du sprichst. Ausschalten macht den Anrufbildschirm ruhiger.</string>
+  <string name="Accessibility__hide_message_notifications">Benachrichtigungen ausblenden</string>
+  <string name="Accessibility__hide_message_notifications_label">Benachrichtigungen über Nachrichten und verpasste Anrufe erscheinen im einfachen Modus nicht. Eingehende Anrufe klingeln weiterhin.</string>
   <string name="Accessibility__always_use_the_speaker">Immer den Lautsprecher verwenden</string>
   <string name="Accessibility__always_use_the_speaker_label">Jeder Anruf wird auf den Lautsprecher gelegt, sobald er zustande kommt — eingehende Anrufe eingeschlossen.</string>
   <string name="Accessibility__volume_at_the_start_of_a_call">Lautstärke zu Beginn eines Anrufs</string>

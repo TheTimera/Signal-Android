@@ -8,7 +8,9 @@ package org.thoughtcrime.securesms.components.settings.app.accessibility
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.thoughtcrime.securesms.dependencies.AppDependencies
 import org.thoughtcrime.securesms.keyvalue.SignalStore
+import org.thoughtcrime.securesms.notifications.NotificationCancellationHelper
 import org.thoughtcrime.securesms.util.RemoteConfig
 
 class AccessibilityModeSettingsViewModel : ViewModel() {
@@ -46,6 +48,10 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
         SignalStore.accessibility.showMicLevel = event.enabled
         _state.value = _state.value.copy(showMicLevel = event.enabled)
       }
+      is AccessibilityModeSettingsEvents.ToggleHideMessageNotifications -> {
+        SignalStore.accessibility.hideMessageNotifications = event.enabled
+        _state.value = _state.value.copy(hideMessageNotifications = event.enabled)
+      }
       is AccessibilityModeSettingsEvents.ToggleAllowScreenShare -> {
         SignalStore.accessibility.allowScreenShare = event.enabled
         _state.value = _state.value.copy(allowScreenShare = event.enabled)
@@ -63,6 +69,17 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
       AccessibilityModeSettingsEvents.Activate -> {
         SignalStore.accessibility.isEnabled = true
         _state.value = _state.value.copy(enabled = true, showActivationDialog = false)
+
+        // ⚠️ Gemessen am 5.10.2026: ohne diese Zeile bleibt eine bereits gestellte Benachrichtigung
+        // stehen. Die Unterdrueckung in DefaultMessageNotifier widerruft zwar auch, aber sie laeuft
+        // nur, wenn ein Ereignis den Notifier anstoesst -- das Einschalten des Modus ist keines.
+        // In der Messung lag danach weiter eine messages_1-Meldung in der Leiste, bis der naechste
+        // eingehende Anruf den Notifier zufaellig antrieb. Genau die Leiste soll der Modus aber
+        // leerraeumen: sein Nutzer kann mit ihr nichts anfangen, und ein Tipp darauf fuehrt in die
+        // volle App.
+        if (SignalStore.accessibility.suppressesMessageNotifications) {
+          NotificationCancellationHelper.cancelAllMessageNotifications(AppDependencies.application)
+        }
       }
       AccessibilityModeSettingsEvents.Deactivate -> {
         SignalStore.accessibility.isEnabled = false
@@ -90,6 +107,7 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
       allowAnswerWithoutVideo = SignalStore.accessibility.allowAnswerWithoutVideo,
       speakerAlwaysOn = SignalStore.accessibility.speakerAlwaysOn,
       showMicLevel = SignalStore.accessibility.showMicLevel,
+      hideMessageNotifications = SignalStore.accessibility.hideMessageNotifications,
       allowScreenShare = SignalStore.accessibility.allowScreenShare,
       callStartVolumePercent = SignalStore.accessibility.callStartVolumePercent,
       // The row stays off the page entirely when Signal's server has screen sharing switched off:

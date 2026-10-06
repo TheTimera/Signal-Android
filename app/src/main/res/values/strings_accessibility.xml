@@ -71,6 +71,8 @@
   <string name="Accessibility__camera_switch_button_label">Adds a button for switching between the front and rear camera.</string>
   <string name="Accessibility__microphone_level">Microphone level</string>
   <string name="Accessibility__microphone_level_label">Shows how loud you are while you speak, below the volume buttons. Turn it off for a plainer call screen.</string>
+  <string name="Accessibility__hide_message_notifications">Hide message notifications</string>
+  <string name="Accessibility__hide_message_notifications_label">Notifications about messages and missed calls are not shown while Accessibility mode is on. Incoming calls still ring.</string>
   <string name="Accessibility__always_use_the_speaker">Always use the speaker</string>
   <string name="Accessibility__always_use_the_speaker_label">Every call is put on the speakerphone as soon as it connects, incoming calls included.</string>
   <string name="Accessibility__volume_at_the_start_of_a_call">Volume at the start of a call</string>

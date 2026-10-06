@@ -156,6 +156,27 @@ class DefaultMessageNotifier(context: Application) : MessageNotifier {
       return
     }
 
+    // Accessibility Mode posts no message notifications at all. Two reasons, and the second one is
+    // the reason this sits here rather than in a filter further down:
+    //
+    //  - There is no chat surface in the mode, so a notification about a message is about something
+    //    its user cannot open, and a missed call is announced on the message channel (messages_1,
+    //    importance 4) -- which is why one popped up after declining a call.
+    //  - Tapping one opens the conversation in the full app, around the PIN or tap pattern. The
+    //    notification shade was the last way past the lock that the mode did not cover.
+    //
+    // ⚠️ Calls are NOT affected: they are built by CallNotificationBuilder on calls_v3/call_status
+    // and never pass through this notifier. A ringing phone keeps ringing, locked screen included.
+    //
+    // Bestehende Meldungen werden mit widerrufen, aber NUR wenn hier etwas vorbeikommt: diese
+    // Funktion laeuft ereignisgetrieben, das blosse Einschalten des Modus treibt sie nicht an.
+    // Das Leerraeumen beim Einschalten erledigt deshalb der ViewModel (AccessibilityModeSettings-
+    // ViewModel.Activate) -- hier zu glauben, es genuege, war am 5.10.2026 nachweislich falsch.
+    if (SignalStore.accessibility.suppressesMessageNotifications) {
+      NotificationCancellationHelper.cancelAllMessageNotifications(context)
+      return
+    }
+
     val currentLockStatus: Boolean = KeyCachingService.isLocked(context)
     val currentPrivacyPreference: NotificationPrivacyPreference = SignalStore.settings.messageNotificationsPrivacy
     val notificationConfigurationChanged: Boolean = currentLockStatus != previousLockedStatus || currentPrivacyPreference != previousPrivacyPreference

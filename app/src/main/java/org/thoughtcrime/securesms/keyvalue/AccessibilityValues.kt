@@ -62,6 +62,7 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     const val ALLOW_ANSWER_WITHOUT_VIDEO = "accessibility.allow_answer_without_video"
     const val SPEAKER_ALWAYS_ON = "accessibility.speaker_always_on"
     const val SHOW_MIC_LEVEL = "accessibility.show_mic_level"
+    const val HIDE_MESSAGE_NOTIFICATIONS = "accessibility.hide_message_notifications"
     const val CALL_START_VOLUME_PERCENT = "accessibility.call_start_volume_percent"
     const val EXIT_WITH_PIN = "accessibility.exit_with_pin"
     const val TAP_COUNT = "accessibility.tap_count"
@@ -120,11 +121,15 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
   var allowScreenShare: Boolean by booleanValue(ALLOW_SCREEN_SHARE, false)
 
   /**
-   * Whether an incoming call can be answered with the camera off. Defaults to on, unlike its
-   * neighbours: this one takes something away from the answering screen rather than adding to it,
-   * and a call you cannot take without video is a call you may not take at all.
+   * Whether an incoming call can be answered with the camera off.
+   *
+   * Off by default since 5.10.2026, decided by the person this fork is built for. The rule it now
+   * follows is the plain one: the mode starts with two buttons, decline and answer, and every
+   * switch on the settings page adds a third thing to look at. The earlier default was on, argued
+   * from "a call you cannot take without video is a call you may not take at all" -- that argument
+   * is not wrong, but it belongs to whoever sets the device up, not to the shipped state.
    */
-  var allowAnswerWithoutVideo: Boolean by booleanValue(ALLOW_ANSWER_WITHOUT_VIDEO, true)
+  var allowAnswerWithoutVideo: Boolean by booleanValue(ALLOW_ANSWER_WITHOUT_VIDEO, false)
 
   /**
    * Whether every call is routed to the speakerphone on connect. On by default: a tablet held at
@@ -135,7 +140,15 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
    */
   var speakerAlwaysOn: Boolean by booleanValue(SPEAKER_ALWAYS_ON, true)
 
-  var showMicLevel: Boolean by booleanValue(SHOW_MIC_LEVEL, true)
+  /** Off by default: one more moving thing on the call screen, and nothing the user has to act on. */
+  var showMicLevel: Boolean by booleanValue(SHOW_MIC_LEVEL, false)
+
+  /**
+   * Whether message notifications are withheld while the mode is on. Default on, and the one
+   * switch here whose off position reopens a hole rather than merely adding a button: a message
+   * notification is a door into the full app that goes around the PIN or tap pattern.
+   */
+  var hideMessageNotifications: Boolean by booleanValue(HIDE_MESSAGE_NOTIFICATIONS, true)
 
   /**
    * How loud a call starts, as a percentage of the device's own call volume scale. Stored as a
@@ -199,6 +212,13 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
    */
   val showsMicLevel: Boolean
     get() = !isEnabled || showMicLevel
+
+  /**
+   * Whether [org.thoughtcrime.securesms.notifications.v2.DefaultMessageNotifier] should post
+   * nothing. Calls do not pass through that notifier, so this never silences a ringing phone.
+   */
+  val suppressesMessageNotifications: Boolean
+    get() = isEnabled && hideMessageNotifications
 
   /**
    * Whether to hold back popups nobody asked for -- app rating, PIN reminder and the other

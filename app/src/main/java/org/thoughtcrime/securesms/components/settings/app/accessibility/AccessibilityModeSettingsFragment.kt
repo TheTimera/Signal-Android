@@ -132,6 +132,15 @@ private fun AccessibilityModeSettingsContent(
       }
 
       item {
+        Rows.ToggleRow(
+          checked = state.hideMessageNotifications,
+          text = stringResource(R.string.Accessibility__hide_message_notifications),
+          label = stringResource(R.string.Accessibility__hide_message_notifications_label),
+          onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleHideMessageNotifications(it)) }
+        )
+      }
+
+      item {
         Text(
           text = stringResource(R.string.Accessibility__video_only_header),
           style = MaterialTheme.typography.bodyMedium,
