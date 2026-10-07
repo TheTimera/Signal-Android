@@ -70,13 +70,10 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
         SignalStore.accessibility.isEnabled = true
         _state.value = _state.value.copy(enabled = true, showActivationDialog = false)
 
-        // ⚠️ Gemessen am 5.10.2026: ohne diese Zeile bleibt eine bereits gestellte Benachrichtigung
-        // stehen. Die Unterdrueckung in DefaultMessageNotifier widerruft zwar auch, aber sie laeuft
-        // nur, wenn ein Ereignis den Notifier anstoesst -- das Einschalten des Modus ist keines.
-        // In der Messung lag danach weiter eine messages_1-Meldung in der Leiste, bis der naechste
-        // eingehende Anruf den Notifier zufaellig antrieb. Genau die Leiste soll der Modus aber
-        // leerraeumen: sein Nutzer kann mit ihr nichts anfangen, und ein Tipp darauf fuehrt in die
-        // volle App.
+        // Notifications already on screen have to be cancelled here. DefaultMessageNotifier revokes
+        // them as well, but it only runs when an event drives it, and turning the mode on is not
+        // one -- an existing message notification would sit in the shade until the next call
+        // happened to wake the notifier.
         if (SignalStore.accessibility.suppressesMessageNotifications) {
           NotificationCancellationHelper.cancelAllMessageNotifications(AppDependencies.application)
         }

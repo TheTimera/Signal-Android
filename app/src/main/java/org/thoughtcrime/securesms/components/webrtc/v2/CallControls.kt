@@ -61,8 +61,8 @@ fun CallControls(
   val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
   val simplified = SignalStore.accessibility.simplifiesCallScreen
 
-  // Nur im Modus trägt "Start Video Call" ein Symbol, und zwar dasselbe, das AcceptCallButton für
-  // denselben Fall nimmt. null heißt: Signals Knopf bleibt wie er ist.
+  // Only in the mode does "Start Video Call" carry an icon, and the same one AcceptCallButton uses
+  // for the same case. null leaves Signal's button as it is.
   val startCallIcon = if (simplified) {
     ImageVector.vectorResource(
       id = if (callControlsState.isVideoEnabled) R.drawable.symbol_video_fill_24 else R.drawable.symbol_phone_fill_white_24

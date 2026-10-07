@@ -35,9 +35,8 @@ import org.thoughtcrime.securesms.util.navigation.safeNavigate
  */
 private val VOLUME_VALUES = (10..100 step 10).map { it.toString() }.toTypedArray()
 
-// Die Beschriftungen entstehen erst im Composable: "%1$d %%" ist uebersetzbar, ein hier gebautes
-// "$it %" waere es nicht. Das Prozentzeichen steht in manchen Sprachen anders oder mit anderem
-// Abstand.
+// The labels are built inside the composable: "%1$d %%" can be translated, a "$it %" assembled here
+// could not. Some languages place the percent sign differently, or space it differently.
 @Composable
 private fun volumeLabels(): Array<String> = VOLUME_VALUES.map {
   stringResource(R.string.Accessibility__percent, it.toInt())
@@ -215,12 +214,7 @@ private fun AccessibilityModeSettingsContent(
         )
       }
 
-      // Der Schalter steht nur da, wenn Signals Server die Bildschirmfreigabe freigegeben hat --
-      // ein Schalter, der nichts bewirken kann, ist schlimmer als keiner. Statt ihn ersatzlos
-      // wegzulassen, steht an seiner Stelle der Grund: sonst sucht die betreuende Person nach einer
-      // Zeile, die in jeder Anleitung steht und hier fehlt. Sobald der Wert ankommt, ersetzt der
-      // Schalter den Hinweis von selbst -- gesteuert von derselben Bedingung, nicht von einer
-      // zweiten, die auseinanderlaufen könnte.
+      // The same condition swaps switch for notice, rather than a second one that could drift.
       item {
         if (state.screenShareAvailable) {
           Rows.ToggleRow(

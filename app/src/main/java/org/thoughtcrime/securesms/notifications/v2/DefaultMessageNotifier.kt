@@ -168,10 +168,9 @@ class DefaultMessageNotifier(context: Application) : MessageNotifier {
     // ⚠️ Calls are NOT affected: they are built by CallNotificationBuilder on calls_v3/call_status
     // and never pass through this notifier. A ringing phone keeps ringing, locked screen included.
     //
-    // Bestehende Meldungen werden mit widerrufen, aber NUR wenn hier etwas vorbeikommt: diese
-    // Funktion laeuft ereignisgetrieben, das blosse Einschalten des Modus treibt sie nicht an.
-    // Das Leerraeumen beim Einschalten erledigt deshalb der ViewModel (AccessibilityModeSettings-
-    // ViewModel.Activate) -- hier zu glauben, es genuege, war am 5.10.2026 nachweislich falsch.
+    // Existing notifications are revoked too, but only when something passes through here: this
+    // function is event-driven, and turning the mode on does not drive it. Clearing the shade at
+    // that moment is therefore done by AccessibilityModeSettingsViewModel instead.
     if (SignalStore.accessibility.suppressesMessageNotifications) {
       NotificationCancellationHelper.cancelAllMessageNotifications(context)
       return

@@ -231,15 +231,10 @@ fun StartCallButton(
     onClick = onClick,
     modifier = modifier.height(56.dp),
     colors = ButtonDefaults.buttonColors(
-      // Grün, entschieden am 5.10.2026, und zwar webrtc_answer_background (#34C759) -- dieselbe
-      // Ressource wie AcceptCallButton und der "Answer"-Knopf. Vorher stand hier Signals
-      // allgemeines signal_light_colorPrimary; das ist die Farbe für "irgendein Hauptknopf",
-      // während dieser hier genau eine Sache tut: einen Anruf beginnen. Gegenstück ist das Rot
-      // am CallBackButton.
       containerColor = colorResource(id = R.color.webrtc_answer_background),
       contentColor = contentColor
     ),
-    // Mit Symbol dasselbe Innenmaß wie CallActionButton, sonst Signals ursprüngliches.
+    // With an icon, the same inner metrics as CallActionButton; without one, Signal's original.
     contentPadding = if (imageVector != null) {
       PaddingValues(horizontal = 24.dp, vertical = 16.dp)
     } else {

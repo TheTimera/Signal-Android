@@ -100,16 +100,9 @@ fun IncomingCallScreen(
         .background(color = Color.Black.copy(alpha = if (showLocalVideo) 0.2f else 0.4f))
     ) {}
 
-    // Kein Zurück-Pfeil im Modus. Annehmen oder ablehnen sind die beiden Entscheidungen, und die
-    // stehen unten als beschriftete Knöpfe -- ein dritter Weg oben links ist nicht nur überflüssig,
-    // er führt ins Leere: `onNavigateUpClicked` ruft onBackPressed, und WebRtcCallActivity geht bei
-    // CALL_INCOMING ausdrücklich NICHT in Bild-in-Bild (Zeile ~183), sondern beendet die Activity.
-    // Der Annahme-Bildschirm verschwände also, während das Telefon weiterklingelt -- und weil der
-    // Modus die Benachrichtigung bei laufender App auf den leisen Kanal legt, gäbe es dann kein
-    // Banner und keinen sichtbaren Weg zurück zum Anruf.
-    //
-    // ⚠️ Die Lobby hatte diese Zeile seit dem 3.10.2026, dieser Bildschirm nicht: zwei Aufrufe
-    // derselben Leiste, nur einer angefasst.
+    // No back arrow while ringing: onNavigateUpClicked calls onBackPressed, and WebRtcCallActivity
+    // deliberately does not enter picture-in-picture for CALL_INCOMING -- it finishes the activity.
+    // The answer screen would disappear while the phone keeps ringing.
     CallScreenTopAppBar(
       callRecipient = null,
       callStatus = null,

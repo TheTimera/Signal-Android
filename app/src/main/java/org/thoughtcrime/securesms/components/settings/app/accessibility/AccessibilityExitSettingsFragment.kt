@@ -57,8 +57,8 @@ class AccessibilityExitSettingsFragment : ComposeFragment() {
   }
 }
 
-// ⚠️ Beschriftungen erst im Composable aufloesen: auf oberster Ebene gibt es keinen Context und
-// damit keine Uebersetzung. Die Reihenfolge muss zu CORNER_VALUES passen.
+// Resolved inside the composable: at top level there is no Context, and therefore no translation.
+// The order has to match CORNER_VALUES.
 @Composable
 private fun cornerLabels(): Array<String> = arrayOf(
   stringResource(R.string.Accessibility__top_left_corner),
@@ -75,8 +75,8 @@ private val CORNER_VALUES = arrayOf(
 
 private val TAP_COUNT_VALUES = arrayOf("3", "4", "5", "6", "7", "8", "9", "10")
 
-// "1 second" hat eine eigene Zeichenkette, weil der Singular nicht in jeder Sprache durch
-// Einsetzen einer 1 entsteht. Reihenfolge wie TAP_WINDOW_VALUES.
+// "1 second" has a string of its own, because not every language forms the singular by substituting
+// a 1. The order has to match TAP_WINDOW_VALUES.
 @Composable
 private fun tapWindowLabels(): Array<String> = arrayOf(
   stringResource(R.string.Accessibility__one_second),

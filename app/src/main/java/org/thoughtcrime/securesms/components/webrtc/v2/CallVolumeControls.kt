@@ -101,14 +101,11 @@ fun CallVolumeControls(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = modifier
   ) {
-    // ⚠️ Vor dem Anruf wird dieser Teil nur UNSICHTBAR geschaltet, nicht weggelassen. Er hält dann
-    //    seinen Platz, und damit steht die Mikrofonanzeige darunter in der Lobby pixelgenau dort,
-    //    wo sie auch im Gespräch steht -- genau das war die Anforderung. Würde man die Knöpfe
-    //    weglassen, rutschte die Anzeige nach oben und wäre vor und während des Anrufs an zwei
-    //    verschiedenen Stellen.
-    val sichtbar = Modifier.alpha(if (showVolume) 1f else 0f)
+    // Hidden rather than absent before the call, so the row keeps its place and the microphone
+    // indicator below it does not move once the call starts.
+    val visible = Modifier.alpha(if (showVolume) 1f else 0f)
 
-    Box(modifier = sichtbar) {
+    Box(modifier = visible) {
       VolumeLevel(
         volume = volume,
         minVolume = minVolume,
@@ -116,16 +113,16 @@ fun CallVolumeControls(
       )
     }
 
-    Box(modifier = sichtbar) {
+    Box(modifier = visible) {
       VolumeButton(
         imageVector = ImageVector.vectorResource(id = R.drawable.symbol_plus_circle_24),
         contentDescription = if (showVolume) stringResource(R.string.Accessibility__volume_up) else "",
-        // Unsichtbar heißt auch unbedienbar: alpha allein nimmt die Berührfläche nicht weg.
+        // Invisible has to mean inoperable too: alpha does not take the touch target away.
         onClick = { if (showVolume) setVolume(volume + 1) }
       )
     }
 
-    Box(modifier = sichtbar) {
+    Box(modifier = visible) {
       VolumeButton(
         imageVector = ImageVector.vectorResource(id = R.drawable.accessibility_minus_circle_24),
         contentDescription = if (showVolume) stringResource(R.string.Accessibility__volume_down) else "",
@@ -138,8 +135,8 @@ fun CallVolumeControls(
     //
     // Its own composable shows nothing while the mic is live and silent, so the slot is held open:
     // otherwise the column shrinks, and since it is centred vertically, the whole group jumps.
-    // Abschaltbar über "Microphone level". Dann entfällt auch der Platzhalter -- ein leerer Slot
-    // für etwas, das nie erscheint, verschöbe die Knöpfe ohne Gegenwert.
+    // Turned off through "Microphone level", and then the placeholder goes as well: an empty slot
+    // for something that can never appear would move the buttons for nothing.
     if (SignalStore.accessibility.showsMicLevel) {
       Box(
         contentAlignment = Alignment.Center,

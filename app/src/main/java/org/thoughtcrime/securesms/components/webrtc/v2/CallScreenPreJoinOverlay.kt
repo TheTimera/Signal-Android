@@ -142,16 +142,6 @@ fun CallScreenPreJoinOverlay(
               horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.Bottom
             ) {
-              // Signal zeichnet hier seine eigene Mikrofonanzeige. Im Modus sitzt sie in der
-              // Lautstärkesäule am rechten Rand, unter dem Minus-Knopf (CallVolumeControls), und
-              // zwar in einem festen Slot, damit sie nicht springt.
-              // ⚠️ Zwei Anläufe, beide falsch, am 4./5.10.2026:
-              //    1. ganz ausgeblendet -- dann fehlte beim Wählen jedes Zeichen, dass das Mikrofon lebt;
-              //    2. nur nach rechts geschoben -- dann war sie DOPPELT zu sehen, einmal in der Säule
-              //       und einmal hier, weil die Säule in diesem Zustand bereits steht.
-              // Richtig ist: hier gar keine, die Säule ist die einzige Stelle. Sie erscheint, sobald
-              // der Auflegen-Knopf da ist (CallScreen.kt), also vom Klingeln an. In der Lobby gibt es
-              // folglich keine -- dort läuft noch kein Gespräch, dessen Pegel man ablesen könnte.
               if (showAudioIndicator) {
                 ParticipantAudioIndicator(
                   participant = localParticipant,

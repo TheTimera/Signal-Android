@@ -217,8 +217,6 @@ fun CallScreen(
     var peekHeight by remember { mutableFloatStateOf(88f) }
     val effectivePeekHeight = if (callControlsState.hasAnyControls) peekHeight else 0f
 
-    // Dragging the sheet open only reveals the call info, which Accessibility Mode does not show.
-    // Without the drag the handle is a promise the sheet no longer keeps, so it goes too.
     val simplified = SignalStore.accessibility.simplifiesCallScreen
 
     BottomSheetScaffold(
@@ -486,7 +484,6 @@ fun CallScreen(
             }
           },
           audioIndicatorSlot = {
-            // In the mode this sits with the volume controls on the right instead.
             if (!simplified && callParticipantsPagerState.callParticipants.size == 1) {
               val participant = callParticipantsPagerState.callParticipants.first()
               ParticipantAudioIndicator(
@@ -534,18 +531,9 @@ fun CallScreen(
             .padding(bottom = 20.dp)
         )
 
-        // Shown with the rest of the controls, not on a schedule of its own: the same sheet state
-        // the top bar watches, so all of it fades together when "Always show call controls" is off.
-        //
-        // Steht ab der LOBBY, nicht erst mit dem Anruf -- die Mikrofonanzeige sitzt am unteren Ende
-        // dieser Säule und soll vor und während des Gesprächs an derselben Stelle stehen. Die
-        // Lautstärke-Knöpfe selbst sind vor dem Anruf nur unsichtbar (showVolume), weil es dann
-        // noch nichts lauter zu stellen gibt; ihren Platz halten sie trotzdem.
-        //
-        // ⚠️ localParticipant, nicht callParticipants.first(). Letzteres ist die GEGENSEITE -- so
-        //    stand es hier bis zum 5.10.2026, und die als Mikrofonanzeige gebaute Anzeige zeigte
-        //    damit den Pegel des anderen. Signals eigener Slot weiter unten tut das absichtlich
-        //    (NOT_SELF_PIP); gewollt ist hier aber das eigene Mikrofon.
+        // localParticipant, not callParticipants.first(): the latter is the remote side, which is
+        // what Signal's own slot further down deliberately wants (NOT_SELF_PIP). What belongs here
+        // is the user's own microphone level.
         AnimatedVisibility(
           visible = simplified &&
             (callControlsState.displayEndCallButton || callControlsState.displayStartCallButton) &&
