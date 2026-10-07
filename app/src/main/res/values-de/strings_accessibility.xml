@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Deutsche Fassung der Texte des Accessibility mode.
-  Englisches Original: app/src/main/res/values/strings_accessibility.xml
+  German version of the Accessibility mode strings.
+  English original: app/src/main/res/values/strings_accessibility.xml
 
-  Zwei Festlegungen vom 5.10.2026:
+  Two decisions, made 2026-10-05:
 
-  1. "Accessibility mode" heisst auf Deutsch "Einfacher Modus". Entschieden vom User gegen
-     "Bedienhilfe-Modus" und gegen Unuebersetztlassen: der Name steht an der prominentesten
-     Stelle und wird von genau den Leuten gelesen, fuer die der Modus gebaut ist.
-     ⚠️ Androids eigener Begriff "Bedienungshilfen" meint etwas anderes (Screenreader,
-     Vergroesserung) — deshalb bewusst NICHT verwendet.
+  1. "Accessibility mode" is "Einfacher Modus" (simple mode) in German. Decided against
+     "Bedienhilfe-Modus" and against leaving the name untranslated: it sits in the most
+     prominent spot and is read by exactly the people the mode is built for.
+     Android's own term "Bedienungshilfen" means something else (screen reader,
+     magnification) and is therefore deliberately not used.
 
-  2. Geduzt, wie Signal selbst. Nachgezaehlt in Signals values-de/strings.xml:
-     493-mal "dein…", 261-mal "du", 88-mal "dich" gegen 6-mal "Sie".
+  2. Informal address ("du"), like Signal's own German strings. Counted in Signal's
+     values-de/strings.xml: 493 "dein…", 261 "du", 88 "dich" against 6 "Sie".
 -->
 <resources>
 
-  <!-- Kachelansicht -->
+  <!-- Tile view -->
   <string name="Accessibility__start_video_call">Videoanruf starten</string>
   <string name="Accessibility__end_video_call">Videoanruf beenden</string>
   <string name="Accessibility__volume_up">Lautstärke erhöhen</string>
@@ -26,7 +26,7 @@
   <string name="Accessibility__no_contacts_yet">Noch keine Kontakte. Wer dieses Gerät eingerichtet hat, muss zuerst einen Chat beginnen.</string>
   <string name="Accessibility__you_are_already_in_a_call">Du telefonierst bereits.</string>
 
-  <!-- Verlassen: Dialog mit PIN, und die Tipp-Bestaetigung -->
+  <!-- Leaving: the PIN dialog, and the tap confirmation -->
   <string name="Accessibility__leave_accessibility_mode">Einfachen Modus verlassen</string>
   <string name="Accessibility__leave_accessibility_mode_question">Einfachen Modus verlassen?</string>
   <string name="Accessibility__leave_brings_back_full_app">Die vollständige Signal-App kommt zurück. Du kannst den einfachen Modus in den Einstellungen wieder einschalten.</string>
@@ -36,10 +36,9 @@
   <string name="Accessibility__signal_pin">Signal-PIN</string>
   <string name="Accessibility__cancel">Abbrechen</string>
   <string name="Accessibility__leave">Verlassen</string>
-  <string name="Accessibility__verify">Prüfen</string>
   <string name="Accessibility__go_back">Zurück</string>
 
-  <!-- Dialog beim Einschalten -->
+  <!-- Dialog shown when switching the mode on -->
   <string name="Accessibility__this_is_accessibility_mode">Das ist der einfache Modus</string>
   <string name="Accessibility__enter_pin_to_confirm">Gib deine Signal-PIN ein, um zu bestätigen, dass du sie kennst. Sie ist der einzige Weg aus dem einfachen Modus heraus, solange du nicht auf das Tippmuster umstellst.</string>
   <string name="Accessibility__forgotten_pin_warning">Eine vergessene Signal-PIN lässt sich nicht wiederherstellen. Du müsstest Signal zurücksetzen und seine Daten verlieren.</string>
@@ -51,7 +50,7 @@
   <string name="Accessibility__need_more_information">Mehr Informationen?</string>
   <string name="Accessibility__got_it">Verstanden</string>
 
-  <!-- Einstellungsseite -->
+  <!-- Settings screen -->
   <string name="Accessibility__accessibility_mode">Einfacher Modus</string>
   <string name="Accessibility__how_to_exit">Einfachen Modus verlassen</string>
   <string name="Accessibility__pin_unlocks_these_settings">Deine Signal-PIN gibt diese Einstellungen frei. Du kannst stattdessen ein Tippmuster verwenden.</string>
@@ -80,7 +79,7 @@
   <string name="Accessibility__turn_on_accessibility_mode">Einfachen Modus einschalten</string>
   <string name="Accessibility__turn_off_accessibility_mode">Einfachen Modus ausschalten</string>
 
-  <!-- Ausstiegsseite -->
+  <!-- Exit screen -->
   <string name="Accessibility__pin_gets_you_out">Deine Signal-PIN bringt dich aus dem einfachen Modus heraus. Ist das ausgeschaltet, ist das Tippmuster unten der einzige Weg hinaus.</string>
   <string name="Accessibility__no_pin_tap_pattern_only_way">Du hast keine Signal-PIN, deshalb ist das Tippmuster unten der einzige Weg hinaus. Richte in den Einstellungen eine PIN ein, um sie zu verwenden.</string>
   <string name="Accessibility__tap_pattern">Tippmuster</string>
@@ -96,7 +95,7 @@
   <string name="Accessibility__one_second">1 Sekunde</string>
   <string name="Accessibility__tap_hint">Tippe %1$d-mal innerhalb von %2$s Sekunden auf die Kontaktübersicht, um den einfachen Modus zu verlassen.</string>
 
-  <!-- Infoseite -->
+  <!-- Info screen -->
   <string name="Accessibility__about_accessibility_mode">Über den einfachen Modus</string>
   <string name="Accessibility__tips">Tipps</string>
   <string name="Accessibility__info_what_it_is">Der einfache Modus ist für Menschen mit Einschränkungen oder besonderen Bedürfnissen gedacht, besonders für ältere Menschen, denen Signals viele Funktionen zu viel werden. Er vereinfacht die App auf das Nötigste, beginnend mit Videoanrufen, und lässt sich erweitern, sobald die Person sich damit wohlfühlt.</string>

@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Texte des Accessibility mode.
+  Strings of the Accessibility mode.
 
-  ⚠️ BEWUSST EINE EIGENE DATEI, nicht strings.xml. Signals strings.xml wird aus Transifex
-  erzeugt und bei jedem Rebase ueberschrieben; alles, was dieser Fork dort einfuegt, waere
-  spaetestens beim naechsten Versionssprung weg oder im Konflikt. Android fasst alle Dateien
-  unter values/ ohnehin zusammen, der Zugriff bleibt R.string.…
+  DELIBERATELY A FILE OF ITS OWN, not strings.xml. Signal's strings.xml is generated from
+  Transifex and overwritten on every rebase; anything this fork adds there would be gone or in
+  conflict by the next version jump at the latest. Android merges all files under values/
+  anyway, so access stays R.string.…
 
-  ⚠️ AUS DEMSELBEN GRUND WERDEN HIER KEINE SIGNAL-SCHLUESSEL MITBENUTZT, auch wenn es sie
-  gibt (AttachmentManager__cancel = "Cancel", LeaveGroupDialog_leave = "Leave" …). Beim Rebase
-  auf 8.30.1 ist der Build daran zerbrochen, dass Signal symbol_minus_circle_24 entfernt hatte —
-  ein entliehener Schluessel ist dieselbe Wette noch einmal. Lieber vier Woerter doppelt als
-  ein Modus, der nach dem naechsten Upstream-Merge nicht mehr uebersetzt ist.
+  FOR THE SAME REASON NO SIGNAL KEYS ARE BORROWED HERE, even though matching ones exist
+  (AttachmentManager__cancel = "Cancel", LeaveGroupDialog_leave = "Leave" …). The rebase onto
+  8.30.1 broke because Signal had removed symbol_minus_circle_24 — a borrowed key is the same
+  bet taken again. Better four words twice than a mode that is left untranslated after the
+  next upstream merge.
 
-  Deutsche Fassung: app/src/main/res/values-de/strings_accessibility.xml
+  German version: app/src/main/res/values-de/strings_accessibility.xml
 -->
 <resources>
 
-  <!-- Kachelansicht -->
+  <!-- Tile view -->
   <string name="Accessibility__start_video_call">Start Video Call</string>
   <string name="Accessibility__end_video_call">End Video Call</string>
   <string name="Accessibility__volume_up">Turn the volume up</string>
@@ -28,7 +28,7 @@
   <string name="Accessibility__no_contacts_yet">No contacts yet. Whoever set up this device needs to start a chat first.</string>
   <string name="Accessibility__you_are_already_in_a_call">You are already in a call.</string>
 
-  <!-- Verlassen: Dialog mit PIN, und die Tipp-Bestaetigung -->
+  <!-- Leaving: the PIN dialog, and the tap confirmation -->
   <string name="Accessibility__leave_accessibility_mode">Leave Accessibility mode</string>
   <string name="Accessibility__leave_accessibility_mode_question">Leave Accessibility mode?</string>
   <string name="Accessibility__leave_brings_back_full_app">The full Signal app comes back. You can switch Accessibility mode on again in Settings.</string>
@@ -38,10 +38,9 @@
   <string name="Accessibility__signal_pin">Signal PIN</string>
   <string name="Accessibility__cancel">Cancel</string>
   <string name="Accessibility__leave">Leave</string>
-  <string name="Accessibility__verify">Verify</string>
   <string name="Accessibility__go_back">Go back</string>
 
-  <!-- Dialog beim Einschalten -->
+  <!-- Dialog shown when switching the mode on -->
   <string name="Accessibility__this_is_accessibility_mode">This is Accessibility mode</string>
   <string name="Accessibility__enter_pin_to_confirm">Enter your Signal PIN to confirm you know it. It is the only way back out of Accessibility mode unless you switch to the tap pattern.</string>
   <string name="Accessibility__forgotten_pin_warning">If you forget your Signal PIN there is no way to recover it. You would have to reset Signal and lose its data.</string>
@@ -53,7 +52,7 @@
   <string name="Accessibility__need_more_information">Need more information?</string>
   <string name="Accessibility__got_it">Got it</string>
 
-  <!-- Einstellungsseite -->
+  <!-- Settings screen -->
   <string name="Accessibility__accessibility_mode">Accessibility mode</string>
   <string name="Accessibility__how_to_exit">How to exit Accessibility mode</string>
   <string name="Accessibility__pin_unlocks_these_settings">Your Signal PIN unlocks these settings. You can switch to a tap pattern instead.</string>
@@ -81,10 +80,10 @@
   <string name="Accessibility__screen_sharing_unavailable_label">Not available on this device yet. Signal enables screen sharing from its server, and that setting only arrives once the device is registered and Signal has been restarted. The switch appears here by itself as soon as it does — and if it never does, Signal has the feature switched off for this account.</string>
   <string name="Accessibility__turn_on_accessibility_mode">Turn on Accessibility mode</string>
   <string name="Accessibility__turn_off_accessibility_mode">Turn off Accessibility mode</string>
-  <!-- %1$d ist die Prozentzahl; %% ist ein einzelnes Prozentzeichen -->
+  <!-- %1$d is the percentage; %% is a single percent sign -->
   <string name="Accessibility__percent">%1$d %%</string>
 
-  <!-- Ausstiegsseite -->
+  <!-- Exit screen -->
   <string name="Accessibility__pin_gets_you_out">Your Signal PIN gets you back out of Accessibility mode. With this off, the tap pattern below is the only way out.</string>
   <string name="Accessibility__no_pin_tap_pattern_only_way">You have no Signal PIN, so the tap pattern below is the only way out. Set up a PIN in Settings to use this.</string>
   <string name="Accessibility__tap_pattern">Tap pattern</string>
@@ -96,13 +95,13 @@
   <string name="Accessibility__top_right_corner">Top right corner</string>
   <string name="Accessibility__bottom_left_corner">Bottom left corner</string>
   <string name="Accessibility__bottom_right_corner">Bottom right corner</string>
-  <!-- %1$s ist die Sekundenzahl -->
+  <!-- %1$s is the number of seconds -->
   <string name="Accessibility__seconds">%1$s seconds</string>
   <string name="Accessibility__one_second">1 second</string>
-  <!-- %1$d Anzahl Tipps, %2$s Sekunden -->
+  <!-- %1$d number of taps, %2$s seconds -->
   <string name="Accessibility__tap_hint">Tap the contact overview screen %1$d times in %2$s seconds to leave Accessibility mode.</string>
 
-  <!-- Infoseite -->
+  <!-- Info screen -->
   <string name="Accessibility__about_accessibility_mode">About Accessibility mode</string>
   <string name="Accessibility__tips">Tips</string>
   <string name="Accessibility__info_what_it_is">Accessibility mode is designed for people with disabilities or special needs, particularly elderly users who may feel overwhelmed by Signal\'s many features. It simplifies the app by offering only essential functions, starting with video calling, and lets you add more functionality as the person grows comfortable with it.</string>

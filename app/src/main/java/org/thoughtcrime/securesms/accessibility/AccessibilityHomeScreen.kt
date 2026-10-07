@@ -63,7 +63,7 @@ private val EXIT_TARGET_SIZE = 84.dp
 /**
  * The whole app while Accessibility Mode is on: one tile per contact, and tapping one goes straight
  * into Signal's own call lobby. The lobby already shows who is about to be called and asks for a
- * second tap on stringResource(R.string.Accessibility__start_video_call), so a confirmation screen of our own sat in front of it saying
+ * second tap on "Start Video Call", so a confirmation screen of our own sat in front of it saying
  * the same thing twice.
  *
  * Exactly one way back out is offered, matching the configured method:

@@ -24,8 +24,8 @@ import org.signal.core.ui.compose.horizontalGutters
 import org.thoughtcrime.securesms.R
 
 /**
- * The explanatory screen behind stringResource(R.string.Accessibility__need_more_information) (design screen 143). Content is the
- * designer's own text with the grammar tidied up.
+ * The explanatory screen behind the "Need more information?" link (design screen 143). Content is
+ * the designer's own text with the grammar tidied up.
  */
 class AccessibilityModeInfoFragment : ComposeFragment() {
 
@@ -37,23 +37,22 @@ class AccessibilityModeInfoFragment : ComposeFragment() {
   }
 }
 
-private val PARAGRAPHS = listOf(
-  "Accessibility mode is designed for people with disabilities or special needs, particularly elderly users who may feel overwhelmed by Signal's many features. It simplifies the app by offering only essential functions, starting with video calling, and lets you add more functionality as the person grows comfortable with it.",
-  "Setting it up should be done by a caregiver, such as a family member, who also sets up the account on the device.",
-  "To prevent unwanted changes to settings or deleted contacts, the settings are locked. Whoever sets up the device chooses the lock: the Signal PIN or a tap pattern.",
-  "Choosing the Signal PIN means that if the PIN is forgotten, the account is locked for good. A Signal PIN cannot be recovered — the account would have to be deleted and set up again. The PIN is the more secure of the two.",
-  "The tap pattern is the alternative. By default, whoever wants to reach the settings taps the top right corner of the screen seven times within two seconds. The corner, the number of taps and the time limit can all be changed. This method makes being locked out far less likely."
-)
-
-private val TIPS = listOf(
-  "Consider running Signal in Accessibility mode inside a kiosk app such as FreeKiosk, so no other apps distract the person using the device.",
-  "Accessibility mode suits a tablet better than a phone, simply because of the button and screen size during a video call."
-)
-
 @Composable
 private fun AccessibilityModeInfoContent(
   onNavigationClick: () -> Unit
 ) {
+  val paragraphs = listOf(
+    stringResource(R.string.Accessibility__info_what_it_is),
+    stringResource(R.string.Accessibility__info_who_sets_it_up),
+    stringResource(R.string.Accessibility__info_why_locked),
+    stringResource(R.string.Accessibility__info_pin_risk),
+    stringResource(R.string.Accessibility__info_tap_pattern)
+  )
+  val tips = listOf(
+    stringResource(R.string.Accessibility__info_tip_kiosk),
+    stringResource(R.string.Accessibility__info_tip_tablet)
+  )
+
   Scaffolds.Settings(
     title = stringResource(R.string.Accessibility__about_accessibility_mode),
     navigationContentDescription = stringResource(R.string.Accessibility__go_back),
@@ -66,7 +65,7 @@ private fun AccessibilityModeInfoContent(
         .verticalScroll(rememberScrollState())
         .horizontalGutters()
     ) {
-      PARAGRAPHS.forEach { paragraph ->
+      paragraphs.forEach { paragraph ->
         Text(
           text = paragraph,
           style = MaterialTheme.typography.bodyLarge,
@@ -87,7 +86,7 @@ private fun AccessibilityModeInfoContent(
         modifier = Modifier.padding(bottom = 8.dp)
       )
 
-      TIPS.forEach { tip ->
+      tips.forEach { tip ->
         Text(
           text = tip,
           style = MaterialTheme.typography.bodyLarge,
