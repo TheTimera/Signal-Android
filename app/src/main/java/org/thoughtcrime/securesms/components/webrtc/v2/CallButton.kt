@@ -29,14 +29,13 @@ import org.signal.core.ui.compose.Buttons
 import org.signal.core.ui.compose.IconButtons
 import org.signal.core.ui.compose.NightPreview
 import org.signal.core.ui.compose.Previews
-import org.signal.core.ui.compose.SignalIcons
 import org.thoughtcrime.securesms.R
 import org.signal.core.ui.R as CoreUiR
 
-private val defaultCallButtonIconSize: Dp = 24.dp
+internal val defaultCallButtonIconSize: Dp = 24.dp
 
 @Composable
-private fun ToggleCallButton(
+internal fun ToggleCallButton(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   imageVector: ImageVector,
@@ -68,7 +67,7 @@ private fun ToggleCallButton(
 }
 
 @Composable
-private fun CallButton(
+internal fun CallButton(
   onClick: () -> Unit,
   imageVector: ImageVector,
   contentDescription: String?,
@@ -171,138 +170,6 @@ fun HangupButton(
     containerColor = colorResource(id = R.color.webrtc_hangup_background),
     modifier = modifier,
     iconSize = iconSize
-  )
-}
-
-/**
- * A call action as a labelled pill: symbol first, words after it, inside the button.
- *
- * Accessibility Mode uses this wherever Signal would use a bare circle with a caption underneath. An
- * icon alone asks the user to know that a dropped handset means "end call"; a caption underneath
- * asks them to connect two things that are drawn apart. One button, one meaning.
- */
-@Composable
-fun CallActionButton(
-  text: String,
-  imageVector: ImageVector,
-  containerColor: Color,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-  contentColor: Color = Color.White
-) {
-  Buttons.LargePrimary(
-    onClick = onClick,
-    modifier = modifier.height(56.dp),
-    colors = ButtonDefaults.buttonColors(
-      containerColor = containerColor,
-      contentColor = contentColor
-    ),
-    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp)
-  ) {
-    Icon(
-      imageVector = imageVector,
-      contentDescription = null,
-      modifier = Modifier.size(defaultCallButtonIconSize),
-      tint = contentColor
-    )
-
-    Spacer(modifier = Modifier.width(12.dp))
-
-    Text(
-      text = text,
-      style = MaterialTheme.typography.labelLarge
-    )
-  }
-}
-
-/**
- * Back out of the lobby, as a round tonal button in the control strip. Same tokens the mode uses for
- * going back elsewhere, so it reads as the same action in a different place.
- */
-@Composable
-fun CallBackButton(
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier
-) {
-  val buttonSize = dimensionResource(id = R.dimen.webrtc_button_size)
-
-  IconButtons.IconButton(
-    onClick = onClick,
-    size = buttonSize,
-    modifier = modifier.size(buttonSize),
-    colors = IconButtons.iconButtonColors(
-      // Rot, entschieden am 5.10.2026: in der Lobby stehen zwei Wege nebeneinander, anrufen und
-      // doch nicht anrufen. Signal färbt dieses Paar überall gleich -- grün für annehmen, rot für
-      // ablehnen und auflegen -- und die Lobby ist derselbe Entschluss, einen Schritt früher.
-      //
-      // Es sind Signals Ressourcen, kein eigener Ton: webrtc_hangup_background (#F07168) wie
-      // EndVideoCallButton, HangupButton und "Decline", dazu signal_light_colorOnPrimary als
-      // Symbolfarbe, die alle farbigen Anrufknöpfe setzen. Der erste Entwurf nahm Color.Red
-      // (#FF0000) und stand damit sichtbar NEBEN Signals Rot statt darin.
-      containerColor = colorResource(id = R.color.webrtc_hangup_background),
-      contentColor = colorResource(id = CoreUiR.color.signal_light_colorOnPrimary)
-    )
-  ) {
-    Icon(
-      imageVector = SignalIcons.ArrowStart.imageVector,
-      contentDescription = stringResource(id = R.string.CallScreenTopBar__go_back),
-      modifier = Modifier.size(defaultCallButtonIconSize)
-    )
-  }
-}
-
-/** Hang up, as a labelled pill. Same shape and height as [StartCallButton]. */
-@Composable
-fun EndVideoCallButton(
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier
-) {
-  CallActionButton(
-    text = stringResource(id = R.string.Accessibility__end_video_call),
-    imageVector = ImageVector.vectorResource(id = R.drawable.symbol_phone_down_fill_24),
-    containerColor = colorResource(id = R.color.webrtc_hangup_background),
-    onClick = onClick,
-    modifier = modifier
-  )
-}
-
-/**
- * Screen sharing from the control strip, for Accessibility Mode -- the mode has no overflow menu to
- * hide it in. Checked while sharing, so the same button stops it again.
- */
-@Composable
-fun ToggleScreenShareButton(
-  isScreenSharing: Boolean,
-  onChange: (Boolean) -> Unit,
-  modifier: Modifier = Modifier
-) {
-  // Inverted on purpose. Signal's toggle buttons draw the *unchecked* state light and the checked
-  // one dark, because the state worth noticing is "your microphone is muted". For screen sharing the
-  // state worth noticing is the opposite one -- that you are sharing -- so passing the flag straight
-  // through would light the button up while nothing is being shared.
-  ToggleCallButton(
-    checked = !isScreenSharing,
-    onCheckedChange = { onChange(!it) },
-    imageVector = ImageVector.vectorResource(id = R.drawable.symbol_screen_share_24),
-    contentDescription = stringResource(id = R.string.CallOverflowPopupWindow__share_screen),
-    modifier = modifier
-  )
-}
-
-/**
- * Switches between front and rear camera from the control strip. Signal's own switch sits in the
- * corner of the small self preview, which is too small a target for Accessibility Mode.
- */
-@Composable
-fun SwitchCameraDirectionButton(
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier
-) {
-  CallButton(
-    onClick = onClick,
-    imageVector = ImageVector.vectorResource(id = R.drawable.symbol_switch_24),
-    contentDescription = stringResource(id = R.string.SwitchCameraButton__switch_camera_direction),
-    modifier = modifier
   )
 }
 
