@@ -1,3 +1,44 @@
+> ## This is a fork: Signal Android with an Accessibility Mode
+>
+> **Not affiliated with or endorsed by Signal Messenger, LLC.** Everything below this box is
+> Signal's own README, unchanged.
+>
+> This fork adds an **Accessibility Mode**: a radically simplified surface for video calls, for
+> someone who cannot operate the full Signal app. A relative sets it up on a shared tablet; from
+> then on the whole app is one tile per contact. Tapping a tile goes straight into Signal's own
+> call lobby. There is exactly one way back out — the Signal PIN, or a hidden tap pattern.
+>
+> It simplifies; it does not lock the device down. Only `MainActivity` is intercepted, so
+> notifications and share intents still lead into the normal app.
+>
+> | | |
+> |---|---|
+> | Code | branch [`accessibility-mode`](../../tree/accessibility-mode), on top of Signal 8.30.2 |
+> | Why it is built the way it is | [`ACCESSIBILITY_MODE.md`](../../blob/accessibility-mode/ACCESSIBILITY_MODE.md) on that branch |
+> | Built and tested against | Galaxy Tab S5e, Android 11, 1280×800 dp |
+> | Languages | English, German |
+> | Licence | AGPL-3.0-only, same as Signal |
+>
+> ### Status — read this before installing it on anyone's device
+>
+> This is personal work for one device, not a release. It compiles and it has been exercised in an
+> emulator and on the target tablet, but large parts have never been verified against real call
+> hardware. In particular the release build has **never been started** — it compiles under R8, which
+> says nothing about whether it runs. Debug builds are signed with the public Android debug key.
+>
+> If the exit method is misconfigured, the mode can make a tablet hard to get out of. Set up and
+> test the way back out *before* handing the device to anyone.
+>
+> ### Building
+>
+> ```bash
+> git checkout accessibility-mode
+> ./gradlew :Signal-Android:assemblePlayProdDebug
+> ```
+>
+> The Gradle module is `:Signal-Android`, not `:app`. Use the **arm64-v8a** APK for a tablet and the
+> **x86_64** one for an emulator.
+
 # Signal Android
 
 Signal is a simple, powerful, and secure messenger that uses your phone's data connection (WiFi/4G/5G) to communicate securely.
