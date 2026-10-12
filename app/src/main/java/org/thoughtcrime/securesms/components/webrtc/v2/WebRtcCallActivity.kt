@@ -90,6 +90,7 @@ import org.thoughtcrime.securesms.util.FullscreenHelper
 import org.thoughtcrime.securesms.util.RemoteConfig
 import org.thoughtcrime.securesms.util.VibrateUtil
 import org.thoughtcrime.securesms.webrtc.CallParticipantsViewState
+import org.thoughtcrime.securesms.webrtc.audio.AudioDeviceMapping
 import org.thoughtcrime.securesms.webrtc.audio.SignalAudioManager
 import org.thoughtcrime.securesms.webrtc.audio.SignalAudioManager.ChosenAudioDeviceIdentifier
 import org.whispersystems.signalservice.api.messages.calls.HangupMessage
@@ -1024,14 +1025,32 @@ class WebRtcCallActivity : BaseActivity(), SafetyNumberChangeDialog.Callback, Re
   /**
    * Puts the call on the speakerphone when the caregiver asked for it. Routed through Signal's own
    * selectAudioDevice, the same call its audio button makes, rather than touching the AudioManager
-   * next to it -- two routes to the same setting disagree sooner or later.
+   * next to it -- two routes to the same setting disagree sooner or later. From API 31 on that call
+   * only accepts a communication device id, so the speaker has to be resolved through the same
+   * mapping the audio manager itself uses; the legacy enum there is a crash, not a fallback.
    */
   private fun applyAccessibilityAudioRoute() {
     if (!SignalStore.accessibility.forcesSpeakerphone) {
       return
     }
 
-    AppDependencies.signalCallManager.selectAudioDevice(ChosenAudioDeviceIdentifier(SignalAudioManager.AudioDevice.SPEAKER_PHONE))
+    if (Build.VERSION.SDK_INT >= 31) {
+      val speakerTypes = AudioDeviceMapping.getEquivalentPlatformTypes(SignalAudioManager.AudioDevice.SPEAKER_PHONE)
+      val speakerId = ContextCompat.getSystemService(this, AudioManager::class.java)
+        ?.availableCommunicationDevices
+        ?.firstOrNull { it.type in speakerTypes }
+        ?.id
+
+      if (speakerId == null) {
+        Log.w(TAG, "Accessibility Mode: no speakerphone among the communication devices, leaving the route alone.")
+        return
+      }
+
+      AppDependencies.signalCallManager.selectAudioDevice(ChosenAudioDeviceIdentifier(speakerId))
+    } else {
+      AppDependencies.signalCallManager.selectAudioDevice(ChosenAudioDeviceIdentifier(SignalAudioManager.AudioDevice.SPEAKER_PHONE))
+    }
+
     Log.i(TAG, "Accessibility Mode: call routed to the speakerphone.")
   }
 
