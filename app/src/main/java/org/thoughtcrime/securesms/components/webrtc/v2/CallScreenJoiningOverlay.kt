@@ -100,7 +100,7 @@ fun CallScreenJoiningOverlay(
     }
 
     val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable && !SignalStore.accessibility.simplifiesCallScreen
-    val showAudioIndicator = isLocalVideoEnabled && !SignalStore.accessibility.simplifiesCallScreen
+    val showAudioIndicator = isLocalVideoEnabled
 
     BottomControlsWithOptionalBar(
       bottomSheetPadding = bottomSheetPadding,

@@ -16,7 +16,6 @@ data class AccessibilityModeSettingsState(
   val allowCameraSwitch: Boolean = false,
   val allowAnswerWithoutVideo: Boolean = false,
   val speakerAlwaysOn: Boolean = true,
-  val showMicLevel: Boolean = false,
   val hideMessageNotifications: Boolean = true,
   val allowScreenShare: Boolean = false,
   val screenShareAvailable: Boolean = false,

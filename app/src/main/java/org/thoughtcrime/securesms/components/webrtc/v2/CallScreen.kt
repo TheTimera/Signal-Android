@@ -543,7 +543,6 @@ fun CallScreen(
           modifier = Modifier.align(Alignment.CenterEnd)
         ) {
           CallVolumeControls(
-            localParticipant = localParticipant,
             showVolume = callControlsState.displayEndCallButton,
             modifier = Modifier
               .windowInsetsPadding(WindowInsets.navigationBarsCompat)

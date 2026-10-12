@@ -44,10 +44,6 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
         SignalStore.accessibility.speakerAlwaysOn = event.enabled
         _state.value = _state.value.copy(speakerAlwaysOn = event.enabled)
       }
-      is AccessibilityModeSettingsEvents.ToggleShowMicLevel -> {
-        SignalStore.accessibility.showMicLevel = event.enabled
-        _state.value = _state.value.copy(showMicLevel = event.enabled)
-      }
       is AccessibilityModeSettingsEvents.ToggleHideMessageNotifications -> {
         SignalStore.accessibility.hideMessageNotifications = event.enabled
         _state.value = _state.value.copy(hideMessageNotifications = event.enabled)
@@ -103,7 +99,6 @@ class AccessibilityModeSettingsViewModel : ViewModel() {
       allowCameraSwitch = SignalStore.accessibility.allowCameraSwitch,
       allowAnswerWithoutVideo = SignalStore.accessibility.allowAnswerWithoutVideo,
       speakerAlwaysOn = SignalStore.accessibility.speakerAlwaysOn,
-      showMicLevel = SignalStore.accessibility.showMicLevel,
       hideMessageNotifications = SignalStore.accessibility.hideMessageNotifications,
       allowScreenShare = SignalStore.accessibility.allowScreenShare,
       callStartVolumePercent = SignalStore.accessibility.callStartVolumePercent,

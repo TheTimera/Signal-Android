@@ -61,7 +61,6 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
     const val ALLOW_SCREEN_SHARE = "accessibility.allow_screen_share"
     const val ALLOW_ANSWER_WITHOUT_VIDEO = "accessibility.allow_answer_without_video"
     const val SPEAKER_ALWAYS_ON = "accessibility.speaker_always_on"
-    const val SHOW_MIC_LEVEL = "accessibility.show_mic_level"
     const val HIDE_MESSAGE_NOTIFICATIONS = "accessibility.hide_message_notifications"
     const val CALL_START_VOLUME_PERCENT = "accessibility.call_start_volume_percent"
     const val EXIT_WITH_PIN = "accessibility.exit_with_pin"
@@ -140,9 +139,6 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
    */
   var speakerAlwaysOn: Boolean by booleanValue(SPEAKER_ALWAYS_ON, true)
 
-  /** Off by default: one more moving thing on the call screen, and nothing the user has to act on. */
-  var showMicLevel: Boolean by booleanValue(SHOW_MIC_LEVEL, false)
-
   /**
    * Whether message notifications are withheld while the mode is on. Default on, and the one
    * switch here whose off position reopens a hole rather than merely adding a button: a message
@@ -205,13 +201,6 @@ class AccessibilityValues(store: KeyValueStore) : SignalStoreValues(store) {
 
   val forcesSpeakerphone: Boolean
     get() = isEnabled && speakerAlwaysOn
-
-  /**
-   * Whether the microphone level is drawn at all. Only asked inside the mode -- outside it Signal
-   * draws its own indicators, which this fork does not touch.
-   */
-  val showsMicLevel: Boolean
-    get() = !isEnabled || showMicLevel
 
   /**
    * Whether [org.thoughtcrime.securesms.notifications.v2.DefaultMessageNotifier] should post

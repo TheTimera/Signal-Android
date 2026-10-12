@@ -83,7 +83,7 @@ fun CallScreenPreJoinOverlay(
   // Accessibility Mode carries the camera switch in the control strip, where every other control
   // sits. Signal's own one in the corner would be the second icon for the same thing.
   val showCameraToggle = isLocalVideoEnabled && isMoreThanOneCameraAvailable && !SignalStore.accessibility.simplifiesCallScreen
-  val showAudioIndicator = isLocalVideoEnabled && !SignalStore.accessibility.simplifiesCallScreen
+  val showAudioIndicator = isLocalVideoEnabled
   val showInfoCard = callRecipient.isCallLink
 
   Box(

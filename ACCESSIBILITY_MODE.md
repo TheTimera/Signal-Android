@@ -25,19 +25,18 @@ lead into the normal app; this is a simplification, not a restriction.
 which the mode does not show. Leaving the handle in place would be a promise the sheet no longer
 keeps, so both go together.
 
-**The microphone indicator lives in the volume column, nowhere else.** Signal draws its own
-indicator in the pre-join and joining overlays, and a second one in `CallScreen`'s
-`audioIndicatorSlot`. In the mode there is a single fixed slot at the bottom of the volume column on
-the right, so the indicator does not move between ringing and talking. Two earlier attempts were
-wrong:
+**All microphone indicators are Signal's own.** The mode once drew a larger copy of the caller's
+level in the volume column, behind a "Microphone level" setting, and suppressed Signal's stock
+indicators to make room for it. Testing on a real tablet (2026-10-12) removed the whole idea: the
+copy duplicated the indicator in the self preview, the partner's indicator bottom left had been
+suppressed by mistake (it answers a different question — whether the other side is being heard),
+and in the lobby the copy could never move, because 1:1 calls only report audio levels once the
+call is connected. Now the self preview shows the own microphone and the slot bottom left shows
+the partner, both exactly as in stock Signal.
 
-1. Hiding it entirely — then nothing on screen showed that the microphone was alive while dialling.
-2. Only moving it right — then it appeared twice, because the column is already on screen in that
-   state.
-
-The column itself is present from the lobby onwards. Before the call connects the volume buttons are
-invisible rather than absent (`showVolume`): there is nothing to turn up yet, but they hold their
-place so the indicator below them does not shift when the call starts.
+The volume buttons are present from the lobby onwards. Before the call connects they are invisible
+rather than absent (`showVolume`): there is nothing to turn up yet, but they hold their place so
+the group does not shift when the call starts.
 
 **The camera switch sits in the control strip.** Signal's own switch is in the corner of the small
 self preview, which is too small a target here. Showing both would be two icons for one action, so

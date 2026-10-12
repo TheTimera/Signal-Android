@@ -188,15 +188,6 @@ private fun AccessibilityModeSettingsContent(
 
       item {
         Rows.ToggleRow(
-          checked = state.showMicLevel,
-          text = stringResource(R.string.Accessibility__microphone_level),
-          label = stringResource(R.string.Accessibility__microphone_level_label),
-          onCheckChanged = { onEvent(AccessibilityModeSettingsEvents.ToggleShowMicLevel(it)) }
-        )
-      }
-
-      item {
-        Rows.ToggleRow(
           checked = state.speakerAlwaysOn,
           text = stringResource(R.string.Accessibility__always_use_the_speaker),
           label = stringResource(R.string.Accessibility__always_use_the_speaker_label),

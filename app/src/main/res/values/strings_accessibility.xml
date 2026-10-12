@@ -68,8 +68,6 @@
   <string name="Accessibility__microphone_button_label">Adds a microphone button to the call screen.</string>
   <string name="Accessibility__camera_switch_button">Camera switch button</string>
   <string name="Accessibility__camera_switch_button_label">Adds a button for switching between the front and rear camera.</string>
-  <string name="Accessibility__microphone_level">Microphone level</string>
-  <string name="Accessibility__microphone_level_label">Shows how loud you are while you speak, below the volume buttons. Turn it off for a plainer call screen.</string>
   <string name="Accessibility__hide_message_notifications">Hide message notifications</string>
   <string name="Accessibility__hide_message_notifications_label">Notifications about messages and missed calls are not shown while Accessibility mode is on. Incoming calls still ring.</string>
   <string name="Accessibility__always_use_the_speaker">Always use the speaker</string>

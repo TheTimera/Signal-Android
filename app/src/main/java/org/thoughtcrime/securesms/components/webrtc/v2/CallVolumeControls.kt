@@ -41,14 +41,9 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import org.signal.core.ui.compose.IconButtons
 import org.thoughtcrime.securesms.R
-import org.thoughtcrime.securesms.events.CallParticipant
-import org.thoughtcrime.securesms.keyvalue.SignalStore
 import org.signal.core.ui.R as CoreUiR
 
 private const val POLL_MILLIS = 1000L
-
-/** Fixed room for the microphone level, which comes and goes on its own. */
-private val MIC_SLOT_SIZE = 52.dp
 
 /**
  * Volume up and down for the call itself, as a pair at the screen edge, with the current level
@@ -68,7 +63,6 @@ private val MIC_SLOT_SIZE = 52.dp
  */
 @Composable
 fun CallVolumeControls(
-  localParticipant: CallParticipant? = null,
   showVolume: Boolean = true,
   modifier: Modifier = Modifier
 ) {
@@ -130,26 +124,6 @@ fun CallVolumeControls(
       )
     }
 
-    // The microphone level belongs next to the thing it is read against -- how loud the other side
-    // is -- not in the opposite corner, which is where Signal puts it.
-    //
-    // Its own composable shows nothing while the mic is live and silent, so the slot is held open:
-    // otherwise the column shrinks, and since it is centred vertically, the whole group jumps.
-    // Turned off through "Microphone level", and then the placeholder goes as well: an empty slot
-    // for something that can never appear would move the buttons for nothing.
-    if (SignalStore.accessibility.showsMicLevel) {
-      Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.size(MIC_SLOT_SIZE)
-      ) {
-        if (localParticipant != null) {
-          ParticipantAudioIndicator(
-            participant = localParticipant,
-            selfPipMode = SelfPipMode.NOT_SELF_PIP
-          )
-        }
-      }
-    }
   }
 }
 
