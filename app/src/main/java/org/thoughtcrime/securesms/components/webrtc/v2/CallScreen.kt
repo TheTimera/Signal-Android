@@ -484,7 +484,7 @@ fun CallScreen(
             }
           },
           audioIndicatorSlot = {
-            if (!simplified && callParticipantsPagerState.callParticipants.size == 1) {
+            if (callParticipantsPagerState.callParticipants.size == 1) {
               val participant = callParticipantsPagerState.callParticipants.first()
               ParticipantAudioIndicator(
                 participant = participant,
