@@ -7,12 +7,15 @@ package org.thoughtcrime.securesms.accessibility
 
 import android.os.SystemClock
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -39,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -48,11 +52,18 @@ import org.signal.core.ui.compose.statusBarsCompat
 import org.signal.core.ui.compose.systemBarsCompat
 import org.signal.core.util.EllapsedTimeFormatter
 import org.thoughtcrime.securesms.R
-import org.thoughtcrime.securesms.avatar.AvatarImage
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import org.signal.core.util.CharacterIterable
+import org.thoughtcrime.securesms.conversation.colors.AvatarColorPair
 import org.thoughtcrime.securesms.keyvalue.AccessibilityTapCorner
 import org.thoughtcrime.securesms.recipients.RecipientId
 
-private val TILE_WIDTH = 280.dp
+/** Upper bound for a contact tile. With more contacts the squares shrink to fit, never overflow. */
+private val TILE_MAX_SIZE = 300.dp
+
+/** Gap between tiles within a row and between the rows. */
+private val TILE_SPACING = 24.dp
 
 /** Reserved for the "call ended" notice, so the tiles do not move when it comes and goes. */
 private val NOTICE_HEIGHT = 108.dp
@@ -213,27 +224,51 @@ private fun ContactPicker(
       }
 
       else -> {
-        Column(
-          horizontalAlignment = Alignment.CenterHorizontally,
-          modifier = Modifier.align(Alignment.Center)
-        ) {
-          // Laid out above the tiles but without moving them: the notice and its placeholder are
-          // the same height, so a tile never shifts under a finger that is already on its way.
-          EndedCallNotice(
-            endedCall = state.endedCall,
-            onExpired = onEndedCallExpired
+        // The tiles are identical squares in a centred grid, so no name length can change a tile's
+        // size. Portrait stacks them in rows of two (up to three contacts: a single column),
+        // landscape in rows of three; an incomplete last row stays centred. The square size is
+        // whatever fits the screen, capped so a single tile does not balloon.
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+          val portrait = maxHeight > maxWidth
+          val count = state.contacts.size
+          val perRow = if (portrait) {
+            if (count <= 3) 1 else 2
+          } else {
+            count.coerceAtMost(3)
+          }
+          val rowCount = (count + perRow - 1) / perRow
+          val tileSize = minOf(
+            (maxWidth - TILE_SPACING * (perRow + 1)) / perRow,
+            (maxHeight - NOTICE_HEIGHT - TILE_SPACING * (rowCount + 1)) / rowCount,
+            TILE_MAX_SIZE
           )
 
-          Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-            verticalAlignment = Alignment.CenterVertically
+          Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.align(Alignment.Center)
           ) {
-            state.contacts.forEach { contact ->
-              ContactTile(
-                contact = contact,
-                onClick = { onContactSelected(contact) },
-                modifier = Modifier.width(TILE_WIDTH)
-              )
+            // Laid out above the tiles but without moving them: the notice and its placeholder are
+            // the same height, so a tile never shifts under a finger that is already on its way.
+            EndedCallNotice(
+              endedCall = state.endedCall,
+              onExpired = onEndedCallExpired
+            )
+
+            Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.spacedBy(TILE_SPACING)
+            ) {
+              state.contacts.chunked(perRow).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(TILE_SPACING)) {
+                  row.forEach { contact ->
+                    ContactTile(
+                      contact = contact,
+                      onClick = { onContactSelected(contact) },
+                      modifier = Modifier.size(tileSize)
+                    )
+                  }
+                }
+              }
             }
           }
         }
@@ -296,23 +331,50 @@ private fun ContactTile(
     shape = RoundedCornerShape(24.dp),
     color = MaterialTheme.colorScheme.surfaceVariant
   ) {
+    // The caller fixes the tile to a square, so the avatar takes whatever height the name leaves
+    // over, and a short name can no longer shrink the tile around itself.
     Column(
       horizontalAlignment = Alignment.CenterHorizontally,
-      modifier = Modifier.padding(horizontal = 24.dp, vertical = 32.dp)
+      verticalArrangement = Arrangement.Center,
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)
     ) {
-      AvatarImage(
-        recipientId = contact.id,
+      // A lettered circle instead of the profile photo: the photo is whatever the contact picked
+      // for themselves, while one large letter in the contact's own colour stays readable and
+      // tells the tiles apart at a distance. First grapheme, not first char, so emoji cannot tear.
+      // The colours come as Signal's own pair -- the backgrounds are pastel, so only the matching
+      // dark foreground keeps the letter legible.
+      val letter = remember(contact.name) {
+        CharacterIterable(contact.name.trim()).firstOrNull()?.uppercase() ?: "?"
+      }
+      val context = LocalContext.current
+      val colors = remember(contact.color) { AvatarColorPair.create(context, contact.color) }
+
+      Box(
+        contentAlignment = Alignment.Center,
         modifier = Modifier
-          .size(168.dp)
+          .weight(1f)
+          .aspectRatio(1f)
           .clip(CircleShape)
-      )
+          .background(Color(colors.backgroundColor))
+      ) {
+        Text(
+          text = letter,
+          color = Color(colors.foregroundColor),
+          fontSize = 72.sp,
+          style = MaterialTheme.typography.headlineLarge
+        )
+      }
 
       Text(
         text = contact.name,
         style = MaterialTheme.typography.headlineSmall,
         fontSize = 28.sp,
         textAlign = TextAlign.Center,
-        modifier = Modifier.padding(top = 24.dp)
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(top = 16.dp)
       )
     }
   }

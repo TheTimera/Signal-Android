@@ -6,16 +6,18 @@
 package org.thoughtcrime.securesms.accessibility
 
 import androidx.compose.runtime.Immutable
+import org.thoughtcrime.securesms.conversation.colors.AvatarColor
 import org.thoughtcrime.securesms.recipients.RecipientId
 
 /**
- * One tile on the Accessibility Mode home screen. Only the id and the name are carried across, so
- * the state stays comparable and the avatar is resolved by the composable that draws it.
+ * One tile on the Accessibility Mode home screen. Only plain values are carried across, so the
+ * state stays comparable; the tile draws a lettered circle from them rather than loading a photo.
  */
 @Immutable
 data class AccessibilityContact(
   val id: RecipientId,
-  val name: String
+  val name: String,
+  val color: AvatarColor
 )
 
 /**

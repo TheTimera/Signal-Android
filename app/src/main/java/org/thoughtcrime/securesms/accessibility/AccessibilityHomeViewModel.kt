@@ -18,12 +18,14 @@ import org.greenrobot.eventbus.ThreadMode
 import org.thoughtcrime.securesms.database.SignalDatabase
 import org.thoughtcrime.securesms.dependencies.AppDependencies
 import org.thoughtcrime.securesms.events.WebRtcViewModel
+import java.text.Collator
 
 /**
- * The design shows three tiles. Four 280dp tiles plus their gaps still fit the 1280dp width of the
- * target tablet in one centred row; more would overflow. A cap, not a design statement.
+ * The tile grid is specified up to six contacts (rows of two in portrait, rows of three in
+ * landscape); beyond that the squares would shrink below a comfortable target. A cap, not a
+ * design statement.
  */
-private const val MAX_CONTACTS = 4
+private const val MAX_CONTACTS = 6
 
 /** How long the "call ended" notice stays up. */
 const val ENDED_CALL_NOTICE_MILLIS = 10_000L
@@ -72,10 +74,15 @@ class AccessibilityHomeViewModel : ViewModel() {
         var record = reader.getNext()
         while (record != null && contacts.size < MAX_CONTACTS) {
           val recipient = record.recipient.resolve()
-          contacts += AccessibilityContact(id = recipient.id, name = recipient.getDisplayName(context))
+          contacts += AccessibilityContact(id = recipient.id, name = recipient.getDisplayName(context), color = recipient.avatarColor)
           record = reader.getNext()
         }
       }
+
+      // The reader returns recency order, which would shuffle the tiles after every call. A fixed
+      // alphabetical order keeps every contact where the person learned to find it. Collator, so
+      // umlauts and case sort the way the device locale expects.
+      contacts.sortWith(compareBy(Collator.getInstance(), AccessibilityContact::name))
 
       _state.update { it.copy(loading = false, contacts = contacts) }
     }
